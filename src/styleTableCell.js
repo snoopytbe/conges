@@ -68,8 +68,6 @@ export const StyleTableCell = (theme) => ({
     },
     '&.vacances': {
       backgroundColor: couleurVacances,
-      borderBottomColor: couleurVacances,
-      borderTopColor: couleurVacances,
       borderLeftColor: couleurVacances,
       borderRightColor: couleurNumeroJour,
     },
