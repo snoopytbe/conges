@@ -16,7 +16,7 @@ export function nthDay(dt, day, number) {
 
 function estToussaint(dt) {
   // Le 1/11 est dans la 2e semaine de vacances de la Toussaint
-  var finVacances = moment([dt.year(), 10, 2]).day(7);
+  var finVacances = moment([dt.year(), 10, 1]).day(0);
   var debutVacances = finVacances.clone().add(-15, 'days');
   return (
     debutVacances.diff(dt, 'days') <= 0 && finVacances.diff(dt, 'days') >= 0
@@ -53,16 +53,16 @@ function debutVacancesFevrier(annee, zone) {
       Numero = ((annee - 2018) % 3) + 1;
       break;
     case 'B':
-      Numero = ((annee - 2018) % 3) + 3;
+      Numero = ((((annee - 2018) % 3) + 2) % 3) + 1;
       break;
     case 'C':
-      Numero = ((annee - 2018) % 3) + 2;
+      Numero = ((((annee - 2018) % 3) + 1) % 3) + 1;
       break;
     default:
       Numero = 0;
   }
 
-  return finVacancesNoel(annee - 1).day(6 + (3 + Numero) * 7);
+  return finVacancesNoel(annee - 1).day((4 + Numero) * 7 - 1);
 }
 
 function finVacancesFevrier(annee, zone) {
@@ -80,7 +80,7 @@ function estFevrier(dt, zone) {
 function debutVacancesPaques(annee, zone) {
   //Démarre 8 semaines après le début des vacances de février avant 2022 et 9 semaines à partir de 2022
   return debutVacancesFevrier(annee, zone).add(
-    7 * 8 + 1 + (annee >= 2022 && 1),
+    7 * 8 + (annee >= 2022 && 7),
     'days'
   );
 }
@@ -108,7 +108,7 @@ function estAscencion(dt) {
 function debutVacancesEte(annee) {
   // Date approximative
   // 1er jour avant le 8 juillet inclus qui est un samedi, un vendredi ou un mercredi
-  var debutVacances = moment([annee, 6, 9]);
+  var debutVacances = moment([annee, 6, 8]);
   var joursPossibles = [3, 5, 6];
   do {
     if (joursPossibles.includes(debutVacances.day())) break;

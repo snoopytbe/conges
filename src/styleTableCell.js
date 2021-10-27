@@ -8,6 +8,7 @@ const couleurDimanche = '#aad5f4';
 const couleurNumeroJour = 'D1C7CF';
 const couleurJourFerie = '#33cc66';
 const couleurVacances = '#e60000';
+const couleurVacancesAutres = '#FF8F8F';
 const couleurBord = '#3F3F6E';
 const white = '#ffffff';
 const black = '#000000';
@@ -69,7 +70,10 @@ export const StyleTableCell = (theme) => ({
     '&.vacances': {
       backgroundColor: couleurVacances,
       borderLeftColor: couleurVacances,
-      borderRightColor: couleurNumeroJour,
+    },
+    '&.vacancesAutres': {
+      backgroundColor: couleurVacancesAutres,
+      borderLeftColor: couleurVacancesAutres,
     },
     '&.largeurvacances': {
       width: '5px',

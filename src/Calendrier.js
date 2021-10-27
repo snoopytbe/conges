@@ -14,10 +14,11 @@ import { estVacances } from './vacances';
 
 export default function Calendrier() {
   const [lignes, setLignes] = React.useState([]);
+  const [annee, setAnnee] = React.useState(2018);
 
-  const dateDebut = moment([2021, 4, 1]);
-  const dateFin = moment([2022, 3, 30]);
-  const range = moment.range(dateDebut, dateFin);
+  var dateDebut = moment([annee, 8, 1]);
+  var dateFin = moment([annee + 1, 7, 30]);
+  var range = moment.range(dateDebut, dateFin);
 
   const zone = 'C';
 
@@ -28,8 +29,8 @@ export default function Calendrier() {
       return jour.isValid()
         ? estFerie(jour)
           ? 'ferie'
-          : jour.day() === 0 || jour.day()===6
-          ? 'dimanche' 
+          : jour.day() === 0 || jour.day() === 6
+          ? 'dimanche'
           : 'jour'
         : 'noDate';
     }
@@ -43,18 +44,19 @@ export default function Calendrier() {
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
           <TableCell className={className}>
-            {isValidDate && myDate.format('DD')+ " " + myDate.format('dd')[0].toUpperCase()}
+            {isValidDate &&
+              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
           </TableCell>
           {/* Initiale du jour */}
-          <TableCell className={className}>
-            
-          </TableCell>
+          <TableCell className={className}></TableCell>
           {/* Vacances scolaires */}
           <TableCell
             className={
               (isValidDate
                 ? estVacances(myDate, zone)
                   ? 'vacances'
+                  : estVacances(myDate, 'A') || estVacances(myDate, 'B')
+                  ? 'vacancesAutres'
                   : className + ' bordvacances'
                 : 'noDate') + ' largeurvacances'
             }
@@ -70,6 +72,10 @@ export default function Calendrier() {
   }
 
   React.useEffect(() => {
+    dateDebut = moment([annee, 8, 1]);
+    dateFin = moment([annee + 1, 7, 30]);
+    range = moment.range(dateDebut, dateFin);
+
     let newLigne = [];
 
     for (let i = 0; i < 31; i++)
@@ -79,7 +85,7 @@ export default function Calendrier() {
       ];
 
     setLignes(newLigne);
-  }, []);
+  }, [annee]);
 
   function NbMonthByYear(oneRange, year) {
     var rangeFullYear = moment.range(
@@ -89,8 +95,6 @@ export default function Calendrier() {
     var rangeYear = rangeFullYear.intersect(oneRange);
     return Array.from(rangeYear.by('month')).length;
   }
-
-  function YearArray()
 
   return (
     <div style={{ width: '1200px' }}>
@@ -122,6 +126,9 @@ export default function Calendrier() {
           </TableBody>
         </Table>
       </TableContainer>
+      <form>
+        <button value="<<" onChange={(e) => setAnnee(annee - 1)} />
+      </form>
     </div>
   );
 }
