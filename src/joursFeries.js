@@ -5,15 +5,17 @@ import moment from 'moment';
 export function Paques(year) {
   //Oudin's Algorithm
   var g = year % 19;
-  var c = year / 100;
-  var h = (c - c / 4 - (8 * c + 13) / 25 + 19 * g + 15) % 30;
-  var i = h - (h / 28) * (1 - (h / 28) * (29 / (h + 1)) * ((21 - g) / 11));
-  var j = (year + year / 4 + i + 2 - c + c / 4) % 7;
-  var p = i - j;
-  var easterDay = 1 + ((p + 27 + (p + 6) / 40) % 31);
-  var easterMonth = 3 + (p + 26) / 30;
+  var c = Math.floor(year / 100);
+  var d = c - Math.floor(c / 4);
+  var e = Math.floor((8 * c + 13) / 25);
+  var h = (d - e + 19 * g + 15) % 30;
+  var k = Math.floor(h / 28);
+  var p = Math.floor(29 / (h + 1));
+  var q = Math.floor((21 - g) / 11);
+  var i = h - k * (1 - k * p * q);
+  var j = (Math.floor(year / 4) + year + i + 2 - d) % 7;
 
-  return moment([year, easterMonth - 1, easterDay]);
+  return moment([year, 2, 1]).add(27 + i - j, 'days');
 }
 
 export function NouvelAn(year) {

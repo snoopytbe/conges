@@ -16,7 +16,8 @@ export function nthDay(dt, day, number) {
 
 function estToussaint(dt) {
   // Le 1/11 est dans la 2e semaine de vacances de la Toussaint
-  var finVacances = moment([dt.year(), 10, 1]).day(0);
+  var firstNov = moment([dt.year(), 10, 1]);
+  var finVacances = firstNov.day() === 0 ? firstNov : firstNov.day(7);
   var debutVacances = finVacances.clone().add(-15, 'days');
   return (
     debutVacances.diff(dt, 'days') <= 0 && finVacances.diff(dt, 'days') >= 0

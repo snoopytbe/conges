@@ -14,7 +14,7 @@ import { estVacances } from './vacances';
 
 export default function Calendrier() {
   const [lignes, setLignes] = React.useState([]);
-  const [annee, setAnnee] = React.useState(2018);
+  const [annee, setAnnee] = React.useState(2022);
 
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee + 1, 7, 30]);
