@@ -11,10 +11,12 @@ moment = extendMoment(moment);
 import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
+import { handleCellClick } from './onContextMenu';
 
-export default function Calendrier() {
+export default function Calendrier(props) {
+  const { annee } = props;
+
   const [lignes, setLignes] = React.useState([]);
-  const [annee, setAnnee] = React.useState(2022);
 
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee + 1, 7, 30]);
@@ -43,12 +45,18 @@ export default function Calendrier() {
       result.push(
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
-          <TableCell className={className}>
+          <TableCell
+            className={className}
+            onContextMenu={(event) => handleCellClick(event, myDate)}
+          >
             {isValidDate &&
               myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
           </TableCell>
           {/* Initiale du jour */}
-          <TableCell className={className}></TableCell>
+          <TableCell
+            className={className}
+            onContextMenu={(event) => handleCellClick(event, myDate)}
+          ></TableCell>
           {/* Vacances scolaires */}
           <TableCell
             className={
@@ -72,10 +80,6 @@ export default function Calendrier() {
   }
 
   React.useEffect(() => {
-    dateDebut = moment([annee, 8, 1]);
-    dateFin = moment([annee + 1, 7, 30]);
-    range = moment.range(dateDebut, dateFin);
-
     let newLigne = [];
 
     for (let i = 0; i < 31; i++)
@@ -85,7 +89,7 @@ export default function Calendrier() {
       ];
 
     setLignes(newLigne);
-  }, [annee]);
+  }, []);
 
   function NbMonthByYear(oneRange, year) {
     var rangeFullYear = moment.range(
@@ -126,9 +130,6 @@ export default function Calendrier() {
           </TableBody>
         </Table>
       </TableContainer>
-      <form>
-        <button value="<<" onChange={(e) => setAnnee(annee - 1)} />
-      </form>
     </div>
   );
 }

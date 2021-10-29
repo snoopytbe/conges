@@ -5,7 +5,7 @@ import Calendrier from './Calendrier';
 export default function App() {
   return (
     <div>
-      <Calendrier />
+      <Calendrier annee={2020} />
     </div>
   );
 }
