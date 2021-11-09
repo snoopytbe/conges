@@ -11,10 +11,16 @@ moment = extendMoment(moment);
 import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
-import { handleCellClick } from './onContextMenu';
 
 export default function Calendrier(props) {
   const { annee } = props;
+
+  const [mousePos, setMousePos] = React.useState({
+    mouseX: null,
+    mouseY: null,
+  });
+  const [activeMenu, setActiveMenu] = React.useState({});
+  const [contextData, setContextData] = React.useState(null);
 
   const [lignes, setLignes] = React.useState([]);
 
@@ -23,6 +29,18 @@ export default function Calendrier(props) {
   var range = moment.range(dateDebut, dateFin);
 
   const zone = 'C';
+
+  function handleCellClick(event, myDate) {
+
+    event.preventDefault();
+    setMousePos({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4,
+    });
+    setActiveMenu({});
+    setContextData({ date: myDate });
+    alert(JSON.stringify(myDate));
+  }
 
   function colonnes(index) {
     const result = [];
