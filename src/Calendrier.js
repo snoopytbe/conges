@@ -5,6 +5,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from './styleTableCell';
 import Paper from '@material-ui/core/Paper';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from './styledMenuItem';
 import moment from 'moment';
 import { extendMoment } from 'moment-range';
 moment = extendMoment(moment);
@@ -19,7 +21,7 @@ export default function Calendrier(props) {
     mouseX: null,
     mouseY: null,
   });
-  const [activeMenu, setActiveMenu] = React.useState({});
+  const [activeMenu, setActiveMenu] = React.useState(false);
   const [contextData, setContextData] = React.useState(null);
 
   const [lignes, setLignes] = React.useState([]);
@@ -31,16 +33,20 @@ export default function Calendrier(props) {
   const zone = 'C';
 
   function handleCellClick(event, myDate) {
-
     event.preventDefault();
     setMousePos({
       mouseX: event.clientX - 2,
       mouseY: event.clientY - 4,
     });
-    setActiveMenu({});
+    setActiveMenu(true);
     setContextData({ date: myDate });
-    alert(JSON.stringify(myDate));
   }
+
+  const handleDescrClose = () => {
+    setActiveMenu(false);
+  };
+
+  const handleCA = () => {};
 
   function colonnes(index) {
     const result = [];
@@ -148,6 +154,24 @@ export default function Calendrier(props) {
           </TableBody>
         </Table>
       </TableContainer>
+      <Menu
+        keepMounted
+        open={activeMenu}
+        onClose={handleDescrClose}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          mousePos.mouseY !== null && mousePos.mouseX !== null
+            ? { top: mousePos.mouseY, left: mousePos.mouseX }
+            : undefined
+        }
+      >
+        <MenuItem onClick={handleCA}>CA</MenuItem>
+        <MenuItem onClick={handleCA}>RTT</MenuItem>{' '}
+        <MenuItem onClick={handleCA}>Formation</MenuItem>{' '}
+        <MenuItem onClick={handleCA}>Maladie</MenuItem>{' '}
+        <MenuItem onClick={handleCA}>Autre</MenuItem>
+        <MenuItem onClick={handleCA}>Présent</MenuItem>
+      </Menu>
     </div>
   );
 }
