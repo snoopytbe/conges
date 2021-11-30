@@ -59,6 +59,21 @@ export default function Calendrier(props) {
     });
   }
 
+  const [mouseDown, setMouseDown] = React.useState(false);
+  const [startDate, setStartDate]= React.useState(null);
+
+  function onMouseDown(event, myDate) {
+    event.preventDefault();
+    setMouseDown(true);
+    setStartDate(myDate)
+  }
+
+  function onMouseUp(event, myDate) {
+    event.preventDefault();
+    setMouseDown(false);
+    setStartDate(myDate)
+  }
+
   const handleCA = () => {};
 
   function colonnes(index) {
@@ -89,6 +104,12 @@ export default function Calendrier(props) {
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onClick={(event) =>
               handleHighlight(event, myDate.format('DDMMyyyy'))
+            }
+            onMouseDown={(event) =>
+              onMouseDown(event, myDate.format('DDMMyyyy'))
+            }
+            onMouseUp={(event) =>
+              onMouseUp(event, myDate.format('DDMMyyyy'))
             }
           >
             {isValidDate &&
@@ -139,6 +160,7 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: '1200px' }}>
+      <p>{JSON.stringify(startDate)}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
