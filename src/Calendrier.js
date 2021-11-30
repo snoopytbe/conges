@@ -26,6 +26,8 @@ export default function Calendrier(props) {
 
   const [lignes, setLignes] = React.useState([]);
 
+  const [highlighted, setHighlighted] = React.useState([]);
+
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee + 1, 7, 30]);
   var range = moment.range(dateDebut, dateFin);
@@ -46,6 +48,17 @@ export default function Calendrier(props) {
     setActiveMenu(false);
   };
 
+  function handleHighlight(event, myDate) {
+    event.preventDefault();
+    setHighlighted((prev) => {
+      var result;
+      if (prev.includes(myDate))
+        result = prev.filter((item) => item !== myDate);
+      else result = [...prev, myDate];
+      return result;
+    });
+  }
+
   const handleCA = () => {};
 
   function colonnes(index) {
@@ -65,22 +78,22 @@ export default function Calendrier(props) {
       let myDate = moment([month.year(), month.month(), index + 1]);
       myDate.locale('fr-FR');
       let isValidDate = myDate.isValid();
-      let className = classDescription(myDate);
+
       result.push(
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
           <TableCell
-            className={className}
+            className={`${classDescription(myDate)} ${
+              highlighted.includes(myDate.format('DDMMyyyy')) && ' highlighted'
+            }`}
             onContextMenu={(event) => handleCellClick(event, myDate)}
+            onClick={(event) =>
+              handleHighlight(event, myDate.format('DDMMyyyy'))
+            }
           >
             {isValidDate &&
               myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
           </TableCell>
-          {/* Initiale du jour */}
-          <TableCell
-            className={className}
-            onContextMenu={(event) => handleCellClick(event, myDate)}
-          ></TableCell>
           {/* Vacances scolaires */}
           <TableCell
             className={
@@ -89,7 +102,7 @@ export default function Calendrier(props) {
                   ? 'vacances'
                   : estVacances(myDate, 'A') || estVacances(myDate, 'B')
                   ? 'vacancesAutres'
-                  : className + ' bordvacances'
+                  : classDescription(myDate) + ' bordvacances'
                 : 'noDate') + ' largeurvacances'
             }
             sx={{
@@ -113,7 +126,7 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
-  }, []);
+  }, [highlighted]);
 
   function NbMonthByYear(oneRange, year) {
     var rangeFullYear = moment.range(
@@ -127,14 +140,14 @@ export default function Calendrier(props) {
   return (
     <div style={{ width: '1200px' }}>
       <TableContainer component={Paper}>
-        <Table>
+        <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
             <TableRow>
               {Array.from(range.snapTo('year').by('year')).map((years) => (
                 <React.Fragment key={years.format('Y')}>
                   <TableCell
                     className="annee"
-                    colSpan={3 * NbMonthByYear(range, years.year())}
+                    colSpan={2 * NbMonthByYear(range, years.year())}
                   >
                     {years.format('YYYY')}
                   </TableCell>
@@ -144,7 +157,7 @@ export default function Calendrier(props) {
             <TableRow>
               {Array.from(range.by('month')).map((month) => (
                 <React.Fragment key={month.format('M')}>
-                  <TableCell className="mois" colSpan={3}>
+                  <TableCell className="mois" colSpan={2}>
                     {month.locale('fr-FR').format('MMMM')}
                   </TableCell>
                 </React.Fragment>

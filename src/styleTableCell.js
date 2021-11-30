@@ -15,39 +15,23 @@ const black = '#000000';
 
 export const StyleTableCell = (theme) => ({
   root: {
-    textAlign: 'center',
+    textAlign: 'left',
     border: `1px solid ${white}`,
     paddingBottom: '1px',
     paddingTop: '1px',
     fontSize: '0.7em',
     color: couleurPolice,
-
-    '&.header': { backgroundColor: couleurAnnee },
-
-    '&.row': {
-      backgroundColor: couleurNumeroJour,
-      color: black,
-      border: `1px solid ${couleurBord}`,
-    },
+    width:'50px',
 
     '&.annee': {
+      textAlign: 'center',
       backgroundColor: couleurAnnee,
       fontSize: '1em',
     },
     '&.mois': {
+      textAlign: 'center',
       backgroundColor: couleurMois,
       fontSize: '0.8em',
-    },
-    '&.numerojour': {
-      color: black,
-      backgroundColor: couleurNumeroJour,
-      borderColor: white,
-    },
-    '&.notWhiteRightBorder': {
-      borderRightColor: couleurNumeroJour,
-    },
-    '&.notWhiteLeftBorder': {
-      borderLeftColor: couleurNumeroJour,
     },
     '&.jour': {
       backgroundColor: white,
@@ -76,11 +60,11 @@ export const StyleTableCell = (theme) => ({
       borderLeftColor: couleurVacancesAutres,
     },
     '&.largeurvacances': {
-      width: '5px',
+      maxWidth: '5px',
       padding: '1px',
     },
-    '&.bordvacances': {
-      borderRightColor: couleurNumeroJour,
+    '&.highlighted': {
+      borderColor: black,
     },
   },
 });
