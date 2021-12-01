@@ -66,20 +66,16 @@ export default function Calendrier(props) {
     event.preventDefault();
     setMouseDown(true);
     setStartDate(myDate);
-    setHighlighted((prev) => {
-      var result = prev;
-      for (let day of moment.range(myDate, myDate).by('day')) {
-        result = [...result, day.format('DDMMyyyy')];
-      }
-      return result;
-    });
+    setHighlighted(
+       [myDate.format('DDMMyyyy')]
+    );
   }
 
   function onMouseOver(event, myDate) {
     event.preventDefault();
     if (mouseDown) {
-      setHighlighted((prev) => {
-        var result = prev;
+      setHighlighted(() => {
+        var result = [];
         for (let day of moment.range(startDate, myDate).by('day')) {
           result = [...result, day.format('DDMMyyyy')];
         }
@@ -115,13 +111,15 @@ export default function Calendrier(props) {
         var tomorrowHighlighted = highlighted.includes(
           myDate.clone().add(1, 'day').format('DDMMyyyy')
         );
-        var tomorrowSameMonth = myDate.clone().add(1, 'day').month === myDate.month;
+        var tomorrowSameMonth =
+          myDate.clone().add(1, 'day').month === myDate.month;
         tomorrowHighlighted = tomorrowHighlighted && tomorrowSameMonth;
 
         var yesterdayHighlighted = highlighted.includes(
           myDate.clone().add(-1, 'day').format('DDMMyyyy')
         );
-        var yesterdaySameMonth = myDate.clone().add(-1, 'day').month === myDate.month;
+        var yesterdaySameMonth =
+          myDate.clone().add(-1, 'day').month === myDate.month;
         yesterdayHighlighted = yesterdayHighlighted && yesterdaySameMonth;
 
         if (tomorrowHighlighted && yesterdayHighlighted)
@@ -132,8 +130,6 @@ export default function Calendrier(props) {
           result = ' highlightedBottom';
         if (!tomorrowHighlighted && !yesterdayHighlighted)
           result = ' highlighted';
-
-        console.log(result)
       }
       return result;
     }
@@ -149,9 +145,6 @@ export default function Calendrier(props) {
           <TableCell
             className={`${classDescription(myDate)} ${styleHighlight(myDate)}`}
             onContextMenu={(event) => handleCellClick(event, myDate)}
-            onClick={(event) =>
-              handleHighlight(event, myDate.format('DDMMyyyy'))
-            }
             onMouseDown={(event) => onMouseDown(event, myDate)}
             onMouseUp={(event) => onMouseUp(event, myDate)}
             onMouseOver={(event) => onMouseOver(event, myDate)}
@@ -204,7 +197,7 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: '1200px' }}>
-      <p>{JSON.stringify(highlighted)}</p>
+      <p>{JSON.stringify("toto")}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
