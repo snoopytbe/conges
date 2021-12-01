@@ -60,18 +60,37 @@ export default function Calendrier(props) {
   }
 
   const [mouseDown, setMouseDown] = React.useState(false);
-  const [startDate, setStartDate]= React.useState(null);
+  const [startDate, setStartDate] = React.useState(null);
 
   function onMouseDown(event, myDate) {
     event.preventDefault();
     setMouseDown(true);
-    setStartDate(myDate)
+    setStartDate(myDate);
+    setHighlighted((prev) => {
+      var result = prev;
+      for (let day of moment.range(myDate, myDate).by('day')) {
+        result = [...result, day.format('DDMMyyyy')];
+      }
+      return result;
+    });
+  }
+
+  function onMouseOver(event, myDate) {
+    event.preventDefault();
+    if (mouseDown) {
+      setHighlighted((prev) => {
+        var result = prev;
+        for (let day of moment.range(startDate, myDate).by('day')) {
+          result = [...result, day.format('DDMMyyyy')];
+        }
+        return result;
+      });
+    }
   }
 
   function onMouseUp(event, myDate) {
     event.preventDefault();
     setMouseDown(false);
-    setStartDate(myDate)
   }
 
   const handleCA = () => {};
@@ -89,6 +108,36 @@ export default function Calendrier(props) {
         : 'noDate';
     }
 
+    function styleHighlight(myDate) {
+      var result = '';
+      var isHighlighted = highlighted.includes(myDate.format('DDMMyyyy'));
+      if (isHighlighted) {
+        var tomorrowHighlighted = highlighted.includes(
+          myDate.clone().add(1, 'day').format('DDMMyyyy')
+        );
+        var tomorrowSameMonth = myDate.clone().add(1, 'day').month === myDate.month;
+        tomorrowHighlighted = tomorrowHighlighted && tomorrowSameMonth;
+
+        var yesterdayHighlighted = highlighted.includes(
+          myDate.clone().add(-1, 'day').format('DDMMyyyy')
+        );
+        var yesterdaySameMonth = myDate.clone().add(-1, 'day').month === myDate.month;
+        yesterdayHighlighted = yesterdayHighlighted && yesterdaySameMonth;
+
+        if (tomorrowHighlighted && yesterdayHighlighted)
+          result = ' highlightedMiddle';
+        if (tomorrowHighlighted && !yesterdayHighlighted)
+          result = ' highlightedTop';
+        if (!tomorrowHighlighted && yesterdayHighlighted)
+          result = ' highlightedBottom';
+        if (!tomorrowHighlighted && !yesterdayHighlighted)
+          result = ' highlighted';
+
+        console.log(result)
+      }
+      return result;
+    }
+
     Array.from(range.by('month')).map((month) => {
       let myDate = moment([month.year(), month.month(), index + 1]);
       myDate.locale('fr-FR');
@@ -98,19 +147,14 @@ export default function Calendrier(props) {
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
           <TableCell
-            className={`${classDescription(myDate)} ${
-              highlighted.includes(myDate.format('DDMMyyyy')) && ' highlighted'
-            }`}
+            className={`${classDescription(myDate)} ${styleHighlight(myDate)}`}
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onClick={(event) =>
               handleHighlight(event, myDate.format('DDMMyyyy'))
             }
-            onMouseDown={(event) =>
-              onMouseDown(event, myDate.format('DDMMyyyy'))
-            }
-            onMouseUp={(event) =>
-              onMouseUp(event, myDate.format('DDMMyyyy'))
-            }
+            onMouseDown={(event) => onMouseDown(event, myDate)}
+            onMouseUp={(event) => onMouseUp(event, myDate)}
+            onMouseOver={(event) => onMouseOver(event, myDate)}
           >
             {isValidDate &&
               myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
@@ -147,7 +191,7 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
-  }, [highlighted]);
+  }, [highlighted, mouseDown]);
 
   function NbMonthByYear(oneRange, year) {
     var rangeFullYear = moment.range(
@@ -160,7 +204,7 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: '1200px' }}>
-      <p>{JSON.stringify(startDate)}</p>
+      <p>{JSON.stringify(highlighted)}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>

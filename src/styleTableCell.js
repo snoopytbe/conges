@@ -21,7 +21,7 @@ export const StyleTableCell = (theme) => ({
     paddingTop: '1px',
     fontSize: '0.7em',
     color: couleurPolice,
-    width:'50px',
+    width: '50px',
 
     '&.annee': {
       textAlign: 'center',
@@ -64,7 +64,24 @@ export const StyleTableCell = (theme) => ({
       padding: '1px',
     },
     '&.highlighted': {
-      borderColor: black,
+      borderTopColor: black,
+      borderLeftColor: black,
+      borderRightColor: black,
+      borderBottomColor: black,
+    },
+    '&.highlightedTop': {
+      borderTopColor: black,
+      borderLeftColor: black,
+      borderRightColor: black,
+    },
+    '&.highlightedMiddle': {
+      borderLeftColor: black,
+      borderRightColor: black,
+    },
+    '&.highlightedBottom': {
+      borderBottomColor: black,
+      borderLeftColor: black,
+      borderRightColor: black,
     },
   },
 });
