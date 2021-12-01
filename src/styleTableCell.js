@@ -68,20 +68,24 @@ export const StyleTableCell = (theme) => ({
       borderLeftColor: black,
       borderRightColor: black,
       borderBottomColor: black,
+      opacity: 0.5,
     },
     '&.highlightedTop': {
       borderTopColor: black,
       borderLeftColor: black,
       borderRightColor: black,
+      opacity: 0.5,
     },
     '&.highlightedMiddle': {
       borderLeftColor: black,
       borderRightColor: black,
+      opacity: 0.5,
     },
     '&.highlightedBottom': {
       borderBottomColor: black,
       borderLeftColor: black,
       borderRightColor: black,
+      opacity: 0.5,
     },
   },
 });

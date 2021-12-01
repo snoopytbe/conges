@@ -14,6 +14,8 @@ import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
 
+moment.locale('fr-FR');
+
 export default function Calendrier(props) {
   const { annee } = props;
 
@@ -66,9 +68,7 @@ export default function Calendrier(props) {
     event.preventDefault();
     setMouseDown(true);
     setStartDate(myDate);
-    setHighlighted(
-       [myDate.format('DDMMyyyy')]
-    );
+    setHighlighted([myDate.format('DDMMyyyy')]);
   }
 
   function onMouseOver(event, myDate) {
@@ -84,25 +84,20 @@ export default function Calendrier(props) {
     }
   }
 
-  function onMouseUp(event, myDate) {
+  function onMouseUp(event) {
     event.preventDefault();
     setMouseDown(false);
+    setMousePos({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4,
+    });
+    setActiveMenu(true);
   }
 
   const handleCA = () => {};
 
   function colonnes(index) {
     const result = [];
-
-    function classDescription(jour) {
-      return jour.isValid()
-        ? estFerie(jour)
-          ? 'ferie'
-          : jour.day() === 0 || jour.day() === 6
-          ? 'dimanche'
-          : 'jour'
-        : 'noDate';
-    }
 
     function styleHighlight(myDate) {
       var result = '';
@@ -136,14 +131,22 @@ export default function Calendrier(props) {
 
     Array.from(range.by('month')).map((month) => {
       let myDate = moment([month.year(), month.month(), index + 1]);
-      myDate.locale('fr-FR');
+
       let isValidDate = myDate.isValid();
+
+      let classDescription = isValidDate
+        ? estFerie(myDate)
+          ? 'ferie'
+          : myDate.day() === 0 || myDate.day() === 6
+          ? 'dimanche'
+          : 'jour'
+        : 'noDate';
 
       result.push(
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
           <TableCell
-            className={`${classDescription(myDate)} ${styleHighlight(myDate)}`}
+            className={`${classDescription} ${styleHighlight(myDate)}`}
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onMouseDown={(event) => onMouseDown(event, myDate)}
             onMouseUp={(event) => onMouseUp(event, myDate)}
@@ -160,13 +163,9 @@ export default function Calendrier(props) {
                   ? 'vacances'
                   : estVacances(myDate, 'A') || estVacances(myDate, 'B')
                   ? 'vacancesAutres'
-                  : classDescription(myDate) + ' bordvacances'
+                  : classDescription
                 : 'noDate') + ' largeurvacances'
             }
-            sx={{
-              padding: 0,
-              width: 1,
-            }}
           />
         </React.Fragment>
       );
@@ -197,7 +196,7 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: '1200px' }}>
-      <p>{JSON.stringify("toto")}</p>
+      <p>{JSON.stringify('toto')}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
