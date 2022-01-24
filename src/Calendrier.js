@@ -30,6 +30,8 @@ export default function Calendrier(props) {
 
   const [highlighted, setHighlighted] = React.useState([]);
 
+  const [CA, setCA] = React.useState([]);
+  
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee + 1, 7, 30]);
   var range = moment.range(dateDebut, dateFin);
@@ -68,14 +70,14 @@ export default function Calendrier(props) {
     event.preventDefault();
     setMouseDown(true);
     setStartDate(myDate);
-    setHighlighted([myDate.format('DDMMyyyy')]);
+    setHighlighted(myDate.format('DDMMyyyy'));
   }
 
   function onMouseOver(event, myDate) {
     event.preventDefault();
     if (mouseDown) {
       setHighlighted(() => {
-        var result = [];
+        var result;
         for (let day of moment.range(startDate, myDate).by('day')) {
           result = [...result, day.format('DDMMyyyy')];
         }
@@ -91,7 +93,7 @@ export default function Calendrier(props) {
       mouseX: event.clientX - 2,
       mouseY: event.clientY - 4,
     });
-    setActiveMenu(true);
+    //setActiveMenu(true);
   }
 
   const handleCA = () => {};
@@ -196,7 +198,6 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: '1200px' }}>
-      <p>{JSON.stringify('toto')}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
@@ -237,9 +238,9 @@ export default function Calendrier(props) {
         }
       >
         <MenuItem onClick={handleCA}>CA</MenuItem>
-        <MenuItem onClick={handleCA}>RTT</MenuItem>{' '}
-        <MenuItem onClick={handleCA}>Formation</MenuItem>{' '}
-        <MenuItem onClick={handleCA}>Maladie</MenuItem>{' '}
+        <MenuItem onClick={handleCA}>RTT</MenuItem>
+        <MenuItem onClick={handleCA}>Formation</MenuItem>
+        <MenuItem onClick={handleCA}>Maladie</MenuItem>
         <MenuItem onClick={handleCA}>Autre</MenuItem>
         <MenuItem onClick={handleCA}>Présent</MenuItem>
       </Menu>
