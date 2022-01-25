@@ -31,7 +31,7 @@ export default function Calendrier(props) {
   const [highlighted, setHighlighted] = React.useState([]);
 
   const [CA, setCA] = React.useState([]);
-  
+
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee + 1, 7, 30]);
   var range = moment.range(dateDebut, dateFin);
@@ -77,7 +77,7 @@ export default function Calendrier(props) {
     event.preventDefault();
     if (mouseDown) {
       setHighlighted(() => {
-        var result;
+        var result = [];
         for (let day of moment.range(startDate, myDate).by('day')) {
           result = [...result, day.format('DDMMyyyy')];
         }
