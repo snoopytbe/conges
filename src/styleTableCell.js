@@ -21,7 +21,7 @@ export const StyleTableCell = (theme) => ({
     paddingTop: '1px',
     fontSize: '0.7em',
     color: couleurPolice,
-    width: '50px',
+
 
     '&.annee': {
       textAlign: 'center',
@@ -62,6 +62,16 @@ export const StyleTableCell = (theme) => ({
     '&.largeurvacances': {
       maxWidth: '5px',
       padding: '1px',
+    },
+    '&.largeurjour': {
+      minWidth: '30px',
+      paddingLeft: '5px',
+      paddingRight:'5px',
+    },
+    '&.largeurconges': {
+      minWidth: '10px',
+      paddingLeft: '5px',
+      paddingRight:'5px',
     },
     '&.highlighted': {
       borderTopColor: black,

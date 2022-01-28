@@ -148,7 +148,7 @@ export default function Calendrier(props) {
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
           <TableCell
-            className={`${classDescription} ${styleHighlight(myDate)}`}
+            className={`${classDescription} ${styleHighlight(myDate)} largeurjour`}
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onMouseDown={(event) => onMouseDown(event, myDate)}
             onMouseUp={(event) => onMouseUp(event, myDate)}
@@ -156,6 +156,15 @@ export default function Calendrier(props) {
           >
             {isValidDate &&
               myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
+          </TableCell>
+          <TableCell
+            className={`${classDescription} ${styleHighlight(myDate)} largeurconges`}
+            onContextMenu={(event) => handleCellClick(event, myDate)}
+            onMouseDown={(event) => onMouseDown(event, myDate)}
+            onMouseUp={(event) => onMouseUp(event, myDate)}
+            onMouseOver={(event) => onMouseOver(event, myDate)}
+          >
+            {isValidDate && 'CA'}
           </TableCell>
           {/* Vacances scolaires */}
           <TableCell
@@ -206,7 +215,7 @@ export default function Calendrier(props) {
                 <React.Fragment key={years.format('Y')}>
                   <TableCell
                     className="annee"
-                    colSpan={2 * NbMonthByYear(range, years.year())}
+                    colSpan={3 * NbMonthByYear(range, years.year())}
                   >
                     {years.format('YYYY')}
                   </TableCell>
@@ -216,7 +225,7 @@ export default function Calendrier(props) {
             <TableRow>
               {Array.from(range.by('month')).map((month) => (
                 <React.Fragment key={month.format('M')}>
-                  <TableCell className="mois" colSpan={2}>
+                  <TableCell className="mois" colSpan={3}>
                     {month.locale('fr-FR').format('MMMM')}
                   </TableCell>
                 </React.Fragment>
