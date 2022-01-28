@@ -22,7 +22,6 @@ export const StyleTableCell = (theme) => ({
     fontSize: '0.7em',
     color: couleurPolice,
 
-
     '&.annee': {
       textAlign: 'center',
       backgroundColor: couleurAnnee,
@@ -65,36 +64,31 @@ export const StyleTableCell = (theme) => ({
     },
     '&.largeurjour': {
       minWidth: '30px',
-      paddingLeft: '5px',
-      paddingRight:'5px',
+      paddingLeft: '10px',
+      paddingRight: '5px',
     },
     '&.largeurconges': {
       minWidth: '10px',
       paddingLeft: '5px',
-      paddingRight:'5px',
+      paddingRight: '10px',
     },
-    '&.highlighted': {
-      borderTopColor: black,
+    '&.largeurmois': {
+      width: '60px',
+    },
+    '&.highlightedLeft': {
       borderLeftColor: black,
+      opacity: 0.5,
+    },
+    '&.highlightedRight': {
       borderRightColor: black,
-      borderBottomColor: black,
       opacity: 0.5,
     },
     '&.highlightedTop': {
       borderTopColor: black,
-      borderLeftColor: black,
-      borderRightColor: black,
-      opacity: 0.5,
-    },
-    '&.highlightedMiddle': {
-      borderLeftColor: black,
-      borderRightColor: black,
       opacity: 0.5,
     },
     '&.highlightedBottom': {
       borderBottomColor: black,
-      borderLeftColor: black,
-      borderRightColor: black,
       opacity: 0.5,
     },
   },

@@ -101,7 +101,7 @@ export default function Calendrier(props) {
   function colonnes(index) {
     const result = [];
 
-    function styleHighlight(myDate) {
+    function styleHighlight(myDate, colonne) {
       var result = '';
       var isHighlighted = highlighted.includes(myDate.format('DDMMyyyy'));
       if (isHighlighted) {
@@ -119,14 +119,18 @@ export default function Calendrier(props) {
           myDate.clone().add(-1, 'day').month === myDate.month;
         yesterdayHighlighted = yesterdayHighlighted && yesterdaySameMonth;
 
-        if (tomorrowHighlighted && yesterdayHighlighted)
-          result = ' highlightedMiddle';
         if (tomorrowHighlighted && !yesterdayHighlighted)
-          result = ' highlightedTop';
+          result = 'highlightedTop';
         if (!tomorrowHighlighted && yesterdayHighlighted)
-          result = ' highlightedBottom';
+          result = 'highlightedBottom';
         if (!tomorrowHighlighted && !yesterdayHighlighted)
-          result = ' highlighted';
+          result = 'highlightedTop highlightedBottom';
+
+        if (colonne == 'gauche') {
+          result += ' highlightedLeft';
+        } else {
+          result += ' highlightedRight';
+        }
       }
       return result;
     }
@@ -148,7 +152,10 @@ export default function Calendrier(props) {
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
           <TableCell
-            className={`${classDescription} ${styleHighlight(myDate)} largeurjour`}
+            className={`${classDescription} ${styleHighlight(
+              myDate,
+              'gauche'
+            )} largeurjour`}
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onMouseDown={(event) => onMouseDown(event, myDate)}
             onMouseUp={(event) => onMouseUp(event, myDate)}
@@ -158,7 +165,10 @@ export default function Calendrier(props) {
               myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
           </TableCell>
           <TableCell
-            className={`${classDescription} ${styleHighlight(myDate)} largeurconges`}
+            className={`${classDescription} ${styleHighlight(
+              myDate,
+              'droite'
+            )} largeurconges`}
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onMouseDown={(event) => onMouseDown(event, myDate)}
             onMouseUp={(event) => onMouseUp(event, myDate)}
@@ -206,7 +216,7 @@ export default function Calendrier(props) {
   }
 
   return (
-    <div style={{ width: '1200px' }}>
+    <div style={{ width: 'fit-content' }}>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
@@ -225,7 +235,7 @@ export default function Calendrier(props) {
             <TableRow>
               {Array.from(range.by('month')).map((month) => (
                 <React.Fragment key={month.format('M')}>
-                  <TableCell className="mois" colSpan={3}>
+                  <TableCell className="mois largeurmois" colSpan={3}>
                     {month.locale('fr-FR').format('MMMM')}
                   </TableCell>
                 </React.Fragment>
