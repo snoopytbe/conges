@@ -13,8 +13,11 @@ moment = extendMoment(moment);
 import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
+import axios from 'axios';
 
 moment.locale('fr-FR');
+
+const URLAPI = 'https://6wgag8geol.execute-api.eu-west-1.amazonaws.com/';
 
 export default function Calendrier(props) {
   const { annee } = props;
@@ -31,6 +34,7 @@ export default function Calendrier(props) {
   const [highlighted, setHighlighted] = React.useState([]);
 
   const [CA, setCA] = React.useState([]);
+  const [error, setError] = React.useState(null);
 
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee + 1, 7, 30]);
@@ -206,6 +210,18 @@ export default function Calendrier(props) {
     setLignes(newLigne);
   }, [highlighted, mouseDown]);
 
+  React.useEffect(() => {
+    fetch('https://6wgag8geol.execute-api.eu-west-1.amazonaws.com/items')
+      .then((res) => res.JSON())
+      .then((actualData) => {
+        setCA(actualData);
+        console.log(actualData);
+      })
+      .catch((err) => {
+        setError(err.message);
+      });
+  }, []);
+
   function NbMonthByYear(oneRange, year) {
     var rangeFullYear = moment.range(
       moment([year, 0, 1]),
@@ -217,6 +233,7 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: 'fit-content' }}>
+      <p>{JSON.stringify(error)}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
