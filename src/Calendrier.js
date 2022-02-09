@@ -211,14 +211,15 @@ export default function Calendrier(props) {
   }, [highlighted, mouseDown]);
 
   React.useEffect(() => {
-    fetch('https://6wgag8geol.execute-api.eu-west-1.amazonaws.com/items')
-      .then((res) => res.JSON())
-      .then((actualData) => {
-        setCA(actualData);
-        console.log(actualData);
+    axios
+      .get('https://6wgag8geol.execute-api.eu-west-1.amazonaws.com/items')
+      .then((res) => res.json())
+      .then((res) => {
+        setCA(res);
+        console.log(res);
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err);
       });
   }, []);
 
@@ -233,7 +234,7 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: 'fit-content' }}>
-      <p>{JSON.stringify(error)}</p>
+      <p>{JSON.stringify(CA)}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
