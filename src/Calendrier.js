@@ -13,11 +13,10 @@ moment = extendMoment(moment);
 import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
+import { getApiData } from './ApiData';
 import axios from 'axios';
 
 moment.locale('fr-FR');
-
-const URLAPI = 'https://6wgag8geol.execute-api.eu-west-1.amazonaws.com/';
 
 export default function Calendrier(props) {
   const { annee } = props;
@@ -27,13 +26,12 @@ export default function Calendrier(props) {
     mouseY: null,
   });
   const [activeMenu, setActiveMenu] = React.useState(false);
-  const [contextData, setContextData] = React.useState(null);
 
   const [lignes, setLignes] = React.useState([]);
 
   const [highlighted, setHighlighted] = React.useState([]);
 
-  const [CA, setCA] = React.useState([]);
+  const [conges, setConges] = React.useState([]);
   const [error, setError] = React.useState(null);
 
   var dateDebut = moment([annee, 8, 1]);
@@ -42,30 +40,18 @@ export default function Calendrier(props) {
 
   const zone = 'C';
 
-  function handleCellClick(event, myDate) {
+  function handleCellClick(event) {
     event.preventDefault();
     setMousePos({
       mouseX: event.clientX - 2,
       mouseY: event.clientY - 4,
     });
     setActiveMenu(true);
-    setContextData({ date: myDate });
   }
 
   const handleDescrClose = () => {
     setActiveMenu(false);
   };
-
-  function handleHighlight(event, myDate) {
-    event.preventDefault();
-    setHighlighted((prev) => {
-      var result;
-      if (prev.includes(myDate))
-        result = prev.filter((item) => item !== myDate);
-      else result = [...prev, myDate];
-      return result;
-    });
-  }
 
   const [mouseDown, setMouseDown] = React.useState(false);
   const [startDate, setStartDate] = React.useState(null);
@@ -178,7 +164,9 @@ export default function Calendrier(props) {
             onMouseUp={(event) => onMouseUp(event, myDate)}
             onMouseOver={(event) => onMouseOver(event, myDate)}
           >
-            {isValidDate && 'CA'}
+            {isValidDate &&
+              conges.find((item) => item.date === myDate.format('YYYY-MM-DD'))
+                ?.conge}
           </TableCell>
           {/* Vacances scolaires */}
           <TableCell
@@ -208,19 +196,10 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
-  }, [highlighted, mouseDown]);
+  }, [highlighted, mouseDown, conges]);
 
   React.useEffect(() => {
-    axios
-      .get('https://6wgag8geol.execute-api.eu-west-1.amazonaws.com/items')
-      .then((res) => res.json())
-      .then((res) => {
-        setCA(res);
-        console.log(res);
-      })
-      .catch((err) => {
-        setError(err);
-      });
+    getApiData().then((data) => setConges(data));
   }, []);
 
   function NbMonthByYear(oneRange, year) {
@@ -234,7 +213,7 @@ export default function Calendrier(props) {
 
   return (
     <div style={{ width: 'fit-content' }}>
-      <p>{JSON.stringify(CA)}</p>
+      <p>{/*JSON.stringify(conges)*/}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
