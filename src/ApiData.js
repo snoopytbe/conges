@@ -7,11 +7,17 @@ export function getApiData() {
   return axios
     .get(URL + '/items')
     .then((res) => {
-      console.log(res.data.Items);
+      //console.log(res.data.Items);
       return res.data.Items;
     })
     .catch((err) => {
       console.log(err);
       return [];
     });
+}
+
+export function putApiData(data) {
+  axios.put(URL + '/items', data).then((response) => {
+    console.log(response);
+  });
 }

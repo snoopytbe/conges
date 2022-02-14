@@ -13,8 +13,7 @@ moment = extendMoment(moment);
 import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
-import { getApiData } from './ApiData';
-import axios from 'axios';
+import { getApiData, putApiData } from './ApiData';
 
 moment.locale('fr-FR');
 
@@ -40,6 +39,8 @@ export default function Calendrier(props) {
 
   const zone = 'C';
 
+  const MenuOptions = ['CA', 'RTT', 'FOR', 'MAL', 'Présent'];
+
   function handleCellClick(event) {
     event.preventDefault();
     setMousePos({
@@ -60,7 +61,7 @@ export default function Calendrier(props) {
     event.preventDefault();
     setMouseDown(true);
     setStartDate(myDate);
-    setHighlighted(myDate.format('DDMMyyyy'));
+    setHighlighted(myDate.format('yyyy-MM-DD'));
   }
 
   function onMouseOver(event, myDate) {
@@ -69,7 +70,7 @@ export default function Calendrier(props) {
       setHighlighted(() => {
         var result = [];
         for (let day of moment.range(startDate, myDate).by('day')) {
-          result = [...result, day.format('DDMMyyyy')];
+          result = [...result, day.format('yyyy-MM-DD')];
         }
         return result;
       });
@@ -83,27 +84,66 @@ export default function Calendrier(props) {
       mouseX: event.clientX - 2,
       mouseY: event.clientY - 4,
     });
-    //setActiveMenu(true);
+    setActiveMenu(true);
   }
 
-  const handleCA = () => {};
+  function uuidv4() {
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+      (
+        c ^
+        (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+      ).toString(16)
+    );
+  }
+
+  const handleNewConge = (typeConge) => {
+    let newConges = [];
+    console.log(highlighted)
+    // on va ajouter/modifier avec le PUT tous les jours "highlighted"
+    highlighted.forEach((oneHighlighted) => {
+      // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
+      let date = moment(oneHighlighted,"yyyy-MM-DD");
+      let day = date.day();
+      console.log(JSON.stringify(date));
+      if (!estFerie(date) && !(day === 0) && !(day === 6)) {
+        let id = conges.filter(
+          (oneConge) => (oneConge.date = oneHighlighted)
+        )?.id;
+
+        // On créé un id s'il n'existe pas
+        if (!id) id = uuidv4();
+
+        newConges = [
+          ...newConges,
+          { date: oneHighlighted, conge: typeConge, id: id },
+        ];
+      }
+    });
+
+    setConges(newConges);
+  };
+
+  const handleMenuItemClick = (event, option) => {
+    var typeConge = option === 'Present' ? '' : option;
+    handleNewConge(typeConge);
+  };
 
   function colonnes(index) {
     const result = [];
 
     function styleHighlight(myDate, colonne) {
       var result = '';
-      var isHighlighted = highlighted.includes(myDate.format('DDMMyyyy'));
+      var isHighlighted = highlighted.includes(myDate.format('yyyy-MM-DD'));
       if (isHighlighted) {
         var tomorrowHighlighted = highlighted.includes(
-          myDate.clone().add(1, 'day').format('DDMMyyyy')
+          myDate.clone().add(1, 'day').format('yyyy-MM-DD')
         );
         var tomorrowSameMonth =
           myDate.clone().add(1, 'day').month === myDate.month;
         tomorrowHighlighted = tomorrowHighlighted && tomorrowSameMonth;
 
         var yesterdayHighlighted = highlighted.includes(
-          myDate.clone().add(-1, 'day').format('DDMMyyyy')
+          myDate.clone().add(-1, 'day').format('yyyy-MM-DD')
         );
         var yesterdaySameMonth =
           myDate.clone().add(-1, 'day').month === myDate.month;
@@ -253,12 +293,14 @@ export default function Calendrier(props) {
             : undefined
         }
       >
-        <MenuItem onClick={handleCA}>CA</MenuItem>
-        <MenuItem onClick={handleCA}>RTT</MenuItem>
-        <MenuItem onClick={handleCA}>Formation</MenuItem>
-        <MenuItem onClick={handleCA}>Maladie</MenuItem>
-        <MenuItem onClick={handleCA}>Autre</MenuItem>
-        <MenuItem onClick={handleCA}>Présent</MenuItem>
+        {MenuOptions.map((option) => (
+          <MenuItem
+            key={option}
+            onClick={(event) => handleMenuItemClick(event, option)}
+          >
+            {option}
+          </MenuItem>
+        ))}
       </Menu>
     </div>
   );
