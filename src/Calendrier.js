@@ -14,6 +14,7 @@ import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
 import { getApiData, putApiData } from './ApiData';
+import axios from 'axios';
 
 moment.locale('fr-FR');
 
@@ -134,8 +135,8 @@ export default function Calendrier(props) {
   const handleMenuItemClick = (event, option) => {
     var typeConge = option === 'Present' ? '' : option;
     handleNewConge(typeConge);
-    setActiveMenu(false)
-    setHighlighted([])
+    setActiveMenu(false);
+    setHighlighted([]);
   };
 
   function colonnes(index) {

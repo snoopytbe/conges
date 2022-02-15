@@ -17,16 +17,25 @@ export function getApiData() {
 }
 
 export function putApiData(data) {
-  console.log(data)
-  axios
-    .put(URL + '/items', JSON.stringify(data), {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
-    })
-    .then(({ data }) => {
-      console.log("2")
-      console.log(data);
+  data.forEach((item) => {
+    //console.log(item);
+    axios
+      .put(
+        URL + '/items',
+        { date: item.date, id: item.id, conge: item.conge },
+      )
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+}
+
+export function deleteApiData(data) {
+  data.forEach((item) => {
+    console.log(item);
+
+    axios.delete(URL + '/items/' + item.id).catch((err) => {
+      console.log(err);
     });
+  });
 }
