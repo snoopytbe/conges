@@ -17,7 +17,16 @@ export function getApiData() {
 }
 
 export function putApiData(data) {
-  axios.put(URL + '/items', data).then((response) => {
-    console.log(response);
-  });
+  console.log(data)
+  axios
+    .put(URL + '/items', JSON.stringify(data), {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+    })
+    .then(({ data }) => {
+      console.log("2")
+      console.log(data);
+    });
 }

@@ -98,16 +98,15 @@ export default function Calendrier(props) {
 
   const handleNewConge = (typeConge) => {
     let newConges = [];
-    console.log(highlighted)
     // on va ajouter/modifier avec le PUT tous les jours "highlighted"
     highlighted.forEach((oneHighlighted) => {
       // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
-      let date = moment(oneHighlighted,"yyyy-MM-DD");
+      let date = moment(oneHighlighted, 'yyyy-MM-DD');
       let day = date.day();
-      console.log(JSON.stringify(date));
+
       if (!estFerie(date) && !(day === 0) && !(day === 6)) {
         let id = conges.filter(
-          (oneConge) => (oneConge.date = oneHighlighted)
+          (oneConge) => oneConge.date === oneHighlighted
         )?.id;
 
         // On créé un id s'il n'existe pas
@@ -120,12 +119,23 @@ export default function Calendrier(props) {
       }
     });
 
+    //on complète avec les jours présents dans "conges" qui n'étaient pas highlighted
+    conges.forEach((oneConge) => {
+      if (
+        highlighted.filter((oneHighlighted) => oneHighlighted === oneConge.date)
+          .length === 0
+      )
+        newConges = [...newConges, oneConge];
+    });
+
     setConges(newConges);
   };
 
   const handleMenuItemClick = (event, option) => {
     var typeConge = option === 'Present' ? '' : option;
     handleNewConge(typeConge);
+    setActiveMenu(false)
+    setHighlighted([])
   };
 
   function colonnes(index) {
@@ -227,6 +237,8 @@ export default function Calendrier(props) {
   }
 
   React.useEffect(() => {
+    putApiData(conges)
+
     let newLigne = [];
 
     for (let i = 0; i < 31; i++)
