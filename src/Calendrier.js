@@ -6,6 +6,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TableCell from './styleTableCell';
 import Paper from '@material-ui/core/Paper';
 import Menu from '@material-ui/core/Menu';
+import Divider from '@material-ui/core/Divider';
 import MenuItem from './styledMenuItem';
 import moment from 'moment';
 import { extendMoment } from 'moment-range';
@@ -14,7 +15,6 @@ import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
 import { getApiData, putApiData } from './ApiData';
-import axios from 'axios';
 
 moment.locale('fr-FR');
 
@@ -32,7 +32,6 @@ export default function Calendrier(props) {
   const [highlighted, setHighlighted] = React.useState([]);
 
   const [conges, setConges] = React.useState([]);
-  const [error, setError] = React.useState(null);
 
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee + 1, 7, 30]);
@@ -40,7 +39,18 @@ export default function Calendrier(props) {
 
   const zone = 'C';
 
-  const MenuOptions = ['CA', 'RTT', 'FOR', 'MAL', 'Présent'];
+  const MenuOptions = [
+    { menu: 'Congés', abr: 'CA' },
+    { menu: 'RTT', abr: 'RTT' },
+    { menu: 'Formation', abr: 'FOR' },
+    { menu: 'Maladie', abr: 'MAL' },
+    { menu: 'Présent', abr: '' },
+    { menu: 'Télétravail', abr: 'TL' },
+    { menu: 'Divider', abr: '' },
+    { menu: 'Journée', abr: 'D-J' },
+    { menu: 'Matin', abr: 'D-AM' },
+    { menu: 'Après-midi', abr: 'D-PM' },
+  ];
 
   function handleCellClick(event) {
     event.preventDefault();
@@ -62,7 +72,7 @@ export default function Calendrier(props) {
     event.preventDefault();
     setMouseDown(true);
     setStartDate(myDate);
-    setHighlighted(myDate.format('yyyy-MM-DD'));
+    setHighlighted([myDate.format('yyyy-MM-DD')]);
   }
 
   function onMouseOver(event, myDate) {
@@ -113,7 +123,7 @@ export default function Calendrier(props) {
         // On créé un id s'il n'existe pas
         if (!id) id = uuidv4();
 
-        putApiData([{ date: oneHighlighted, conge: typeConge, id: id }])
+        putApiData([{ date: oneHighlighted, conge: typeConge, id: id }]);
 
         newConges = [
           ...newConges,
@@ -308,14 +318,20 @@ export default function Calendrier(props) {
             : undefined
         }
       >
-        {MenuOptions.map((option) => (
-          <MenuItem
-            key={option}
-            onClick={(event) => handleMenuItemClick(event, option)}
-          >
-            {option}
-          </MenuItem>
-        ))}
+        {MenuOptions.map((option) => {
+          var result;
+          if (option.menu === 'Divider') result = <Divider />;
+          else
+            result = (
+              <MenuItem
+                key={option.menu}
+                onClick={(event) => handleMenuItemClick(event, option.abr)}
+              >
+                {option.menu}
+              </MenuItem>
+            );
+          return result;
+        })}
       </Menu>
     </div>
   );
