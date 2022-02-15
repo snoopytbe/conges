@@ -14,7 +14,7 @@ moment = extendMoment(moment);
 import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
-import { getApiData, putApiData } from './ApiData';
+import { getApiData, putApiData, deleteApiData } from './ApiData';
 
 moment.locale('fr-FR');
 
@@ -40,16 +40,16 @@ export default function Calendrier(props) {
   const zone = 'C';
 
   const MenuOptions = [
-    { menu: 'Congés', abr: 'CA' },
-    { menu: 'RTT', abr: 'RTT' },
-    { menu: 'Formation', abr: 'FOR' },
-    { menu: 'Maladie', abr: 'MAL' },
-    { menu: 'Présent', abr: '' },
-    { menu: 'Télétravail', abr: 'TL' },
-    { menu: 'Divider', abr: '' },
-    { menu: 'Journée', abr: 'D-J' },
-    { menu: 'Matin', abr: 'D-AM' },
-    { menu: 'Après-midi', abr: 'D-PM' },
+    { menu: 'Congés', abr: 'CA', type: 'conge' },
+    { menu: 'RTT', abr: 'RTT', type: 'conge' },
+    { menu: 'Formation', abr: 'FOR', type: 'conge' },
+    { menu: 'Maladie', abr: 'MAL', type: 'conge' },
+    { menu: 'Présent', abr: '', type: 'conge' },
+    { menu: 'Télétravail', abr: 'TL', type: 'conge' },
+    { menu: 'Divider', abr: '', type: 'separateur' },
+    { menu: 'Journée', abr: 'J', type: 'temps' },
+    { menu: 'Matin', abr: 'AM', type: 'temps' },
+    { menu: 'Après-midi', abr: 'PM', type: 'temps' },
   ];
 
   function handleCellClick(event) {
@@ -107,7 +107,7 @@ export default function Calendrier(props) {
     );
   }
 
-  const handleNewConge = (typeConge) => {
+  const handleNewConge = (abreviation, type) => {
     let newConges = [];
     // on va ajouter/modifier avec le PUT tous les jours "highlighted"
     highlighted.forEach((oneHighlighted) => {
@@ -116,19 +116,37 @@ export default function Calendrier(props) {
       let day = date.day();
 
       if (!estFerie(date) && !(day === 0) && !(day === 6)) {
+        // On commence par chercher l'id et on le créé s'il n'existe pas
         let id = conges.filter(
           (oneConge) => oneConge.date === oneHighlighted
         )?.id;
 
-        // On créé un id s'il n'existe pas
         if (!id) id = uuidv4();
 
-        putApiData([{ date: oneHighlighted, conge: typeConge, id: id }]);
+        let duree =
+          type === 'temps'
+            ? abreviation
+            : conges.filter((oneConge) => oneConge.date === oneHighlighted)
+                ?.duree ?? 'J';
 
-        newConges = [
-          ...newConges,
-          { date: oneHighlighted, conge: typeConge, id: id },
-        ];
+        let abr =
+          type === 'temps'
+            ? conges.filter((oneConge) => oneConge.date === oneHighlighted)?.abr
+            : abreviation;
+
+        let data = {
+          date: oneHighlighted,
+          abr: abr,
+          id: id,
+          duree: duree,
+        };
+
+        if (data.abr === '') {
+          deleteApiData(data);
+        } else {
+          putApiData([data]);
+          newConges = [...newConges, { data }];
+        }
       }
     });
 
@@ -144,9 +162,8 @@ export default function Calendrier(props) {
     setConges(newConges);
   };
 
-  const handleMenuItemClick = (event, option) => {
-    var typeConge = option === 'Present' ? '' : option;
-    handleNewConge(typeConge);
+  const handleMenuItemClick = (event, abr, type) => {
+    handleNewConge(abr, type);
     setActiveMenu(false);
     setHighlighted([]);
   };
@@ -229,7 +246,7 @@ export default function Calendrier(props) {
           >
             {isValidDate &&
               conges.find((item) => item.date === myDate.format('YYYY-MM-DD'))
-                ?.conge}
+                ?.abr}
           </TableCell>
           {/* Vacances scolaires */}
           <TableCell
@@ -325,7 +342,9 @@ export default function Calendrier(props) {
             result = (
               <MenuItem
                 key={option.menu}
-                onClick={(event) => handleMenuItemClick(event, option.abr)}
+                onClick={(event) =>
+                  handleMenuItemClick(event, option.abr, option.type)
+                }
               >
                 {option.menu}
               </MenuItem>
