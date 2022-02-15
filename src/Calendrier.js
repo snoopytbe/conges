@@ -113,6 +113,8 @@ export default function Calendrier(props) {
         // On créé un id s'il n'existe pas
         if (!id) id = uuidv4();
 
+        putApiData([{ date: oneHighlighted, conge: typeConge, id: id }])
+
         newConges = [
           ...newConges,
           { date: oneHighlighted, conge: typeConge, id: id },
@@ -238,7 +240,7 @@ export default function Calendrier(props) {
   }
 
   React.useEffect(() => {
-    putApiData(conges)
+    //putApiData(conges)
 
     let newLigne = [];
 
