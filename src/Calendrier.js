@@ -117,21 +117,20 @@ export default function Calendrier(props) {
 
       if (!estFerie(date) && !(day === 0) && !(day === 6)) {
         // On commence par chercher l'id et on le créé s'il n'existe pas
-        let id = conges.filter(
-          (oneConge) => oneConge.date === oneHighlighted
-        )?.id;
-
-        if (!id) id = uuidv4();
+        let id =
+          conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
+            .id ?? uuidv4();
 
         let duree =
           type === 'temps'
             ? abreviation
-            : conges.filter((oneConge) => oneConge.date === oneHighlighted)
-                ?.duree ?? 'J';
+            : conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
+                .duree ?? 'J';
 
         let abr =
           type === 'temps'
-            ? conges.filter((oneConge) => oneConge.date === oneHighlighted)?.abr
+            ? conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
+                .abr
             : abreviation;
 
         let data = {
@@ -141,11 +140,12 @@ export default function Calendrier(props) {
           duree: duree,
         };
 
-        if (data.abr === '') {
-          deleteApiData(data);
+        //console.log(data)
+        if (!abr) {
+          deleteApiData([data]);
         } else {
           putApiData([data]);
-          newConges = [...newConges, { data }];
+          newConges = [...newConges, data];
         }
       }
     });
@@ -159,6 +159,7 @@ export default function Calendrier(props) {
         newConges = [...newConges, oneConge];
     });
 
+    //console.log(conges)
     setConges(newConges);
   };
 
@@ -267,8 +268,6 @@ export default function Calendrier(props) {
   }
 
   React.useEffect(() => {
-    //putApiData(conges)
-
     let newLigne = [];
 
     for (let i = 0; i < 31; i++)

@@ -7,7 +7,7 @@ export function getApiData() {
   return axios
     .get(URL + '/items')
     .then((res) => {
-      //console.log(res.data.Items);
+      console.log(res.data.Items);
       return res.data.Items;
     })
     .catch((err) => {
@@ -18,7 +18,7 @@ export function getApiData() {
 
 export function putApiData(data) {
   data.forEach((item) => {
-    //console.log(item);
+    console.log(item);
     axios
       .put(URL + '/items', {
         date: item.date,
@@ -34,10 +34,13 @@ export function putApiData(data) {
 
 export function deleteApiData(data) {
   data.forEach((item) => {
-    console.log(item);
-
-    axios.delete(URL + '/items/' + item.id).catch((err) => {
-      console.log(err);
-    });
+    axios
+      .delete(URL + '/items/' + item.id)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
 }
