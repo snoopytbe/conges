@@ -10,6 +10,7 @@ const couleurJourFerie = '#33cc66';
 const couleurVacances = '#e60000';
 const couleurVacancesAutres = '#FF8F8F';
 const couleurBord = '#3F3F6E';
+const couleurConges = '#fcc603';
 const white = '#ffffff';
 const black = '#000000';
 
@@ -50,6 +51,9 @@ export const StyleTableCell = (theme) => ({
     '&.noDate': {
       backgroundColor: white,
     },
+    '&.conges': {
+      backgroundColor: couleurConges,
+    },
     '&.vacances': {
       backgroundColor: couleurVacances,
       borderLeftColor: couleurVacances,
@@ -59,21 +63,28 @@ export const StyleTableCell = (theme) => ({
       borderLeftColor: couleurVacancesAutres,
     },
     '&.largeurvacances': {
-      maxWidth: '5px',
+      width: '5px',
       padding: '1px',
     },
     '&.largeurjour': {
-      minWidth: '30px',
+      width: '30px',
       paddingLeft: '10px',
       paddingRight: '5px',
     },
     '&.largeurconges': {
-      minWidth: '10px',
+      textAlign: 'center',
+      width: '60px',
+      paddingLeft: '5px',
+      paddingRight: '10px',
+    },
+    '&.largeurmiconges': {
+      textAlign: 'center',
+      width: '20px',
       paddingLeft: '5px',
       paddingRight: '10px',
     },
     '&.largeurmois': {
-      width: '60px',
+      //width: '100px',
     },
     '&.highlightedLeft': {
       borderLeftColor: black,

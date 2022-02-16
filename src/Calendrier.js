@@ -34,7 +34,8 @@ export default function Calendrier(props) {
   const [conges, setConges] = React.useState([]);
 
   var dateDebut = moment([annee, 8, 1]);
-  var dateFin = moment([annee + 1, 7, 30]);
+  var dateFin = moment([annee, 10, 30]);
+  //var dateFin = moment([annee + 1, 7, 30]);
   var range = moment.range(dateDebut, dateFin);
 
   const zone = 'C';
@@ -219,6 +220,63 @@ export default function Calendrier(props) {
           : 'jour'
         : 'noDate';
 
+      function tableCellConge() {
+        let conge = conges.find(
+          (item) => item.date === myDate.format('YYYY-MM-DD')
+        );
+
+        if (!conge) {
+          conge = { duree: 'J', abr: '' };
+        }
+
+        if (conge.duree === 'J')
+          return (
+            <TableCell
+              colspan={2}
+              className={`${classDescription} ${styleHighlight(
+                myDate,
+                'droite'
+              )} largeurconges ${conge.abr !== '' && 'conges'}`}
+              onContextMenu={(event) => handleCellClick(event, myDate)}
+              onMouseDown={(event) => onMouseDown(event, myDate)}
+              onMouseUp={(event) => onMouseUp(event, myDate)}
+              onMouseOver={(event) => onMouseOver(event, myDate)}
+            >
+              {isValidDate && conge?.abr}
+            </TableCell>
+          );
+        else
+          return (
+            <>
+              <TableCell
+                className={`${classDescription} ${styleHighlight(
+                  myDate,
+                  'droite'
+                )} largeurmiconges ${conge.duree === 'AM' && 'conges'}`}
+                onContextMenu={(event) => handleCellClick(event, myDate)}
+                onMouseDown={(event) => onMouseDown(event, myDate)}
+                onMouseUp={(event) => onMouseUp(event, myDate)}
+                onMouseOver={(event) => onMouseOver(event, myDate)}
+              >
+                {isValidDate && conge.duree === 'AM' && conge.abr}
+              </TableCell>
+
+              <TableCell
+                className={`${classDescription} ${styleHighlight(
+                  myDate,
+                  'droite'
+                )} largeurmiconges ${conge.duree === 'PM' && 'conges'}`}
+                onContextMenu={(event) => handleCellClick(event, myDate)}
+                onMouseDown={(event) => onMouseDown(event, myDate)}
+                onMouseUp={(event) => onMouseUp(event, myDate)}
+                onMouseOver={(event) => onMouseOver(event, myDate)}
+              >
+                {isValidDate && conge.duree === 'PM' && conge.abr}
+              </TableCell>
+            </>
+          );
+      }
+
       result.push(
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
@@ -235,20 +293,9 @@ export default function Calendrier(props) {
             {isValidDate &&
               myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
           </TableCell>
-          <TableCell
-            className={`${classDescription} ${styleHighlight(
-              myDate,
-              'droite'
-            )} largeurconges`}
-            onContextMenu={(event) => handleCellClick(event, myDate)}
-            onMouseDown={(event) => onMouseDown(event, myDate)}
-            onMouseUp={(event) => onMouseUp(event, myDate)}
-            onMouseOver={(event) => onMouseOver(event, myDate)}
-          >
-            {isValidDate &&
-              conges.find((item) => item.date === myDate.format('YYYY-MM-DD'))
-                ?.abr}
-          </TableCell>
+
+          {tableCellConge()}
+
           {/* Vacances scolaires */}
           <TableCell
             className={
@@ -293,7 +340,7 @@ export default function Calendrier(props) {
   }
 
   return (
-    <div style={{ width: 'fit-content' }}>
+    <div style={{ maxWidth: `${120 * 3}px` }}>
       <p>{/*JSON.stringify(conges)*/}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
@@ -303,7 +350,7 @@ export default function Calendrier(props) {
                 <React.Fragment key={years.format('Y')}>
                   <TableCell
                     className="annee"
-                    colSpan={3 * NbMonthByYear(range, years.year())}
+                    colSpan={4 * NbMonthByYear(range, years.year())}
                   >
                     {years.format('YYYY')}
                   </TableCell>
@@ -313,7 +360,7 @@ export default function Calendrier(props) {
             <TableRow>
               {Array.from(range.by('month')).map((month) => (
                 <React.Fragment key={month.format('M')}>
-                  <TableCell className="mois largeurmois" colSpan={3}>
+                  <TableCell className="mois largeurmois" colSpan={4}>
                     {month.locale('fr-FR').format('MMMM')}
                   </TableCell>
                 </React.Fragment>
