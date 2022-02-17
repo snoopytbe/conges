@@ -16,91 +16,88 @@ const black = '#000000';
 
 export const StyleTableCell = (theme) => ({
   root: {
-    textAlign: 'left',
     border: `1px solid ${white}`,
+    backgroundColor: 'white',
     paddingBottom: '1px',
     paddingTop: '1px',
     fontSize: '0.7em',
     color: couleurPolice,
-
     '&.annee': {
       textAlign: 'center',
       backgroundColor: couleurAnnee,
       fontSize: '1em',
+      color: couleurPolice,
     },
     '&.mois': {
       textAlign: 'center',
       backgroundColor: couleurMois,
       fontSize: '0.8em',
+      color: couleurPolice,
     },
-    '&.jour': {
+    '&.date': {
+      textAlign: 'left',
+      color: black,
+      width: '60px',
+      paddingLeft: '10px',
+      paddingRight: '5px',
       backgroundColor: white,
       borderColor: 'D2D2D2',
-      color: black,
     },
-    '&.dimanche': {
+    '&.conges': {
+      backgroundColor: couleurConges,
+      textAlign: 'center',
+      color: black,
+      '&.matin': {
+        width: '20px',
+        paddingLeft: '5px',
+        paddingRight: '5px',
+      },
+      '&.apresmidi': {
+        width: '20px',
+        paddingLeft: '5px',
+        paddingRight: '10px',
+      },
+      '&.journee': {
+        width: '50px',
+        paddingLeft: '5px',
+        paddingRight: '10px',
+      },
+    },
+    '&.vacances': {
+      width: '5px',
+      padding: '1px',
+      maZone: {
+        backgroundColor: couleurVacances,
+        borderLeftColor: couleurVacances,
+      },
+      autresZones: {
+        backgroundColor: couleurVacancesAutres,
+        borderLeftColor: couleurVacancesAutres,
+      },
+      aucune: {},
+    },
+    '&.WE': {
       backgroundColor: couleurDimanche,
       borderColor: couleurDimanche,
-      color: black,
     },
     '&.ferie': {
       backgroundColor: couleurJourFerie,
       borderColor: couleurJourFerie,
-      color: black,
     },
-    '&.noDate': {
-      backgroundColor: white,
-    },
-    '&.conges': {
-      backgroundColor: couleurConges,
-    },
-    '&.vacances': {
-      backgroundColor: couleurVacances,
-      borderLeftColor: couleurVacances,
-    },
-    '&.vacancesAutres': {
-      backgroundColor: couleurVacancesAutres,
-      borderLeftColor: couleurVacancesAutres,
-    },
-    '&.largeurvacances': {
-      width: '5px',
-      padding: '1px',
-    },
-    '&.largeurjour': {
-      width: '30px',
-      paddingLeft: '10px',
-      paddingRight: '5px',
-    },
-    '&.largeurconges': {
-      textAlign: 'center',
-      width: '60px',
-      paddingLeft: '5px',
-      paddingRight: '10px',
-    },
-    '&.largeurmiconges': {
-      textAlign: 'center',
-      width: '20px',
-      paddingLeft: '5px',
-      paddingRight: '10px',
-    },
-    '&.largeurmois': {
-      //width: '100px',
-    },
-    '&.highlightedLeft': {
-      borderLeftColor: black,
+    '&.highlighted': {
       opacity: 0.5,
-    },
-    '&.highlightedRight': {
-      borderRightColor: black,
-      opacity: 0.5,
-    },
-    '&.highlightedTop': {
-      borderTopColor: black,
-      opacity: 0.5,
-    },
-    '&.highlightedBottom': {
-      borderBottomColor: black,
-      opacity: 0.5,
+      left: {
+        borderLeftColor: black,
+      },
+      right: {
+        borderRightColor: black,
+      },
+      top: {
+        borderTopColor: black,
+      },
+      bottom: {
+        borderBottomColor: black,
+      },
     },
   },
 });

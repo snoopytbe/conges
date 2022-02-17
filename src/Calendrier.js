@@ -220,6 +220,28 @@ export default function Calendrier(props) {
           : 'jour'
         : 'noDate';
 
+      function MyTableCell(params) {
+        const { type, text, ...others } = params;
+        var specialType = '';
+        if (myDate.isValid) {
+          if (estFerie(myDate)) specialType = 'ferie';
+          else if (myDate.day() === 0 || myDate.day() === 6) specialType = 'WE';
+        }
+
+        return (
+          <TableCell
+            {...others}
+            className={`${type} ${specialType}`}
+            onContextMenu={(event) => handleCellClick(event, myDate)}
+            onMouseDown={(event) => onMouseDown(event, myDate)}
+            onMouseUp={(event) => onMouseUp(event, myDate)}
+            onMouseOver={(event) => onMouseOver(event, myDate)}
+          >
+            {text}
+          </TableCell>
+        );
+      }
+
       function tableCellConge() {
         let conge = conges.find(
           (item) => item.date === myDate.format('YYYY-MM-DD')
@@ -231,48 +253,24 @@ export default function Calendrier(props) {
 
         if (conge.duree === 'J')
           return (
-            <TableCell
+            <MyTableCell
               colspan={2}
-              className={`${classDescription} ${styleHighlight(
-                myDate,
-                'droite'
-              )} largeurconges ${conge.abr !== '' && 'conges'}`}
-              onContextMenu={(event) => handleCellClick(event, myDate)}
-              onMouseDown={(event) => onMouseDown(event, myDate)}
-              onMouseUp={(event) => onMouseUp(event, myDate)}
-              onMouseOver={(event) => onMouseOver(event, myDate)}
-            >
-              {isValidDate && conge?.abr}
-            </TableCell>
+              type="journee"
+              text={isValidDate && conge?.abr}
+            />
           );
         else
           return (
             <>
-              <TableCell
-                className={`${classDescription} ${styleHighlight(
-                  myDate,
-                  'droite'
-                )} largeurmiconges ${conge.duree === 'AM' && 'conges'}`}
-                onContextMenu={(event) => handleCellClick(event, myDate)}
-                onMouseDown={(event) => onMouseDown(event, myDate)}
-                onMouseUp={(event) => onMouseUp(event, myDate)}
-                onMouseOver={(event) => onMouseOver(event, myDate)}
-              >
-                {isValidDate && conge.duree === 'AM' && conge.abr}
-              </TableCell>
+              <MyTableCell
+                type="matin"
+                text={isValidDate && conge.duree === 'AM' && conge.abr}
+              />
 
-              <TableCell
-                className={`${classDescription} ${styleHighlight(
-                  myDate,
-                  'droite'
-                )} largeurmiconges ${conge.duree === 'PM' && 'conges'}`}
-                onContextMenu={(event) => handleCellClick(event, myDate)}
-                onMouseDown={(event) => onMouseDown(event, myDate)}
-                onMouseUp={(event) => onMouseUp(event, myDate)}
-                onMouseOver={(event) => onMouseOver(event, myDate)}
-              >
-                {isValidDate && conge.duree === 'PM' && conge.abr}
-              </TableCell>
+              <MyTableCell
+                type="apresmidi"
+                text={isValidDate && conge.duree === 'PM' && conge.abr}
+              />
             </>
           );
       }
@@ -280,32 +278,26 @@ export default function Calendrier(props) {
       result.push(
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
-          <TableCell
-            className={`${classDescription} ${styleHighlight(
-              myDate,
-              'gauche'
-            )} largeurjour`}
-            onContextMenu={(event) => handleCellClick(event, myDate)}
-            onMouseDown={(event) => onMouseDown(event, myDate)}
-            onMouseUp={(event) => onMouseUp(event, myDate)}
-            onMouseOver={(event) => onMouseOver(event, myDate)}
-          >
-            {isValidDate &&
-              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
-          </TableCell>
+          <MyTableCell
+            type="date"
+            text={
+              isValidDate &&
+              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()
+            }
+          />
 
           {tableCellConge()}
 
           {/* Vacances scolaires */}
           <TableCell
             className={
-              (isValidDate
+              isValidDate
                 ? estVacances(myDate, zone)
-                  ? 'vacances'
+                  ? 'vacances.maZone'
                   : estVacances(myDate, 'A') || estVacances(myDate, 'B')
-                  ? 'vacancesAutres'
-                  : classDescription
-                : 'noDate') + ' largeurvacances'
+                  ? 'vacances.autresZones'
+                  : 'vacances.aucune'
+                : ''
             }
           />
         </React.Fragment>
@@ -340,7 +332,7 @@ export default function Calendrier(props) {
   }
 
   return (
-    <div style={{ maxWidth: `${120 * 3}px` }}>
+    <div style={{ maxWidth: `${150 * 3}px` }}>
       <p>{/*JSON.stringify(conges)*/}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
