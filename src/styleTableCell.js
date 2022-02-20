@@ -11,25 +11,24 @@ const couleurConges = '#fcc603';
 const white = '#ffffff';
 const black = '#000000';
 
-const base = {
-  border: `1px solid ${white}`,
+export const base = {
+  border: `0.5px solid ${white}`,
   backgroundColor: 'white',
   paddingBottom: '1px',
   paddingTop: '1px',
   fontSize: '0.7em',
+  textAlign: 'center',
   color: couleurPolice,
 };
 
 export const annee = {
   ...base,
-  textAlign: 'center',
   backgroundColor: couleurAnnee,
   fontSize: '1em',
 };
 
 export const mois = {
   ...base,
-  textAlign: 'center',
   backgroundColor: couleurMois,
   fontSize: '0.8em',
 };
@@ -38,7 +37,7 @@ export const date = {
   ...base,
   textAlign: 'left',
   color: black,
-  width: '60px',
+  width: '30px',
   paddingLeft: '10px',
   paddingRight: '5px',
   backgroundColor: white,
@@ -46,13 +45,13 @@ export const date = {
 };
 
 export const WE = {
-  ...base,
+  ...date,
   backgroundColor: couleurDimanche,
   borderColor: couleurDimanche,
 }
 
 export const ferie = {
-  ...base,
+  ...date,
   backgroundColor: couleurJourFerie,
   borderColor: couleurJourFerie,
 },
@@ -60,34 +59,33 @@ export const ferie = {
 const conges = {
   ...base,
   backgroundColor: couleurConges,
-  textAlign: 'center',
   color: black,
 };
 
-export const congesMatin = {
+export const congeMatin = {
   ...conges,
-  width: '20px',
   paddingLeft: '5px',
   paddingRight: '5px',
+  width: '50px',
 };
 
 export const congeApresMidi = {
   ...conges,
-  width: '20px',
   paddingLeft: '5px',
   paddingRight: '10px',
+  width: '50px',
 };
 
 export const congeJournee = {
   ...conges,
-  width: '50px',
   paddingLeft: '5px',
   paddingRight: '10px',
+  width: '100px',
 };
 
-const vacances = {
+export const vacances = {
   ...base,
-  width: '5px',
+  width: '7px',
   padding: '1px',
 };
 
@@ -106,14 +104,6 @@ export const autresZones = {
 /*export const StyleTableCell = (theme) => ({
 
 
-    '&.WE': {
-      backgroundColor: couleurDimanche,
-      borderColor: couleurDimanche,
-    },
-    '&.ferie': {
-      backgroundColor: couleurJourFerie,
-      borderColor: couleurJourFerie,
-    },
     '&.highlighted': {
       opacity: 0.5,
       left: {

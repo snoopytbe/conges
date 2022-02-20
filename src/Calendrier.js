@@ -223,16 +223,35 @@ export default function Calendrier(props) {
 
       function MyTableCell(params) {
         const { type, text, ...others } = params;
-        var styleToApply = {};
+        var styleToApply = StyleTableCell.base;
         if (myDate.isValid) {
-          if (estFerie(myDate)) styleToApply = StyleTableCell.ferie
-          else if (myDate.day() === 0 || myDate.day() === 6) styleToApply = StyleTableCell.WE;
+          if (estFerie(myDate)) styleToApply = StyleTableCell.ferie;
+          else if (myDate.day() === 0 || myDate.day() === 6)
+            styleToApply = StyleTableCell.WE;
+          else {
+            switch (type) {
+              case 'date':
+                styleToApply = StyleTableCell.date;
+                break;
+              case 'congeJournee':
+                styleToApply = StyleTableCell.congeJournee;
+                break;
+              case 'congeMatin':
+                styleToApply = StyleTableCell.congeMatin;
+                break;
+              case 'congeApresMidi':
+                styleToApply = StyleTableCell.congeApresMidi;
+                break;
+              default:
+                StyleTableCell.base;
+            }
+          }
         }
 
         return (
           <TableCell
             {...others}
-            sx={{ ...styleToApply}}
+            sx={{ ...styleToApply }}
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onMouseDown={(event) => onMouseDown(event, myDate)}
             onMouseUp={(event) => onMouseUp(event, myDate)}
@@ -256,7 +275,7 @@ export default function Calendrier(props) {
           return (
             <MyTableCell
               colspan={2}
-              type="journee"
+              type="congeJournee"
               text={isValidDate && conge?.abr}
             />
           );
@@ -264,12 +283,12 @@ export default function Calendrier(props) {
           return (
             <>
               <MyTableCell
-                type="matin"
+                type="congeMatin"
                 text={isValidDate && conge.duree === 'AM' && conge.abr}
               />
 
               <MyTableCell
-                type="apresmidi"
+                type="congeApresMidi"
                 text={isValidDate && conge.duree === 'PM' && conge.abr}
               />
             </>
@@ -291,15 +310,15 @@ export default function Calendrier(props) {
 
           {/* Vacances scolaires */}
           <TableCell
-            className={
-              isValidDate
+            sx={{
+              ...(isValidDate
                 ? estVacances(myDate, zone)
-                  ? 'vacances.maZone'
+                  ? StyleTableCell.maZone
                   : estVacances(myDate, 'A') || estVacances(myDate, 'B')
-                  ? 'vacances.autresZones'
-                  : 'vacances.aucune'
-                : ''
-            }
+                  ? StyleTableCell.autresZones
+                  : StyleTableCell.vacances
+                : ''),
+            }}
           />
         </React.Fragment>
       );
@@ -333,7 +352,7 @@ export default function Calendrier(props) {
   }
 
   return (
-    <div style={{ maxWidth: `${150 * 3}px` }}>
+    <div>
       <p>{/*JSON.stringify(conges)*/}</p>
       <TableContainer component={Paper}>
         <Table style={{ borderCollapse: 'separate' }}>
