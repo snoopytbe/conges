@@ -1,13 +1,13 @@
 import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from './styleTableCell';
-import Paper from '@material-ui/core/Paper';
-import Menu from '@material-ui/core/Menu';
-import Divider from '@material-ui/core/Divider';
-import MenuItem from './styledMenuItem';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableContainer from '@mui/material/TableContainer';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import Paper from '@mui/material/Paper';
+import Menu from '@mui/material/Menu';
+import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
 import moment from 'moment';
 import { extendMoment } from 'moment-range';
 moment = extendMoment(moment);
@@ -15,6 +15,7 @@ import 'moment/min/locales.min';
 import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
 import { getApiData, putApiData, deleteApiData } from './ApiData';
+import * as StyleTableCell from './styleTableCell';
 
 moment.locale('fr-FR');
 
@@ -222,16 +223,16 @@ export default function Calendrier(props) {
 
       function MyTableCell(params) {
         const { type, text, ...others } = params;
-        var specialType = '';
+        var styleToApply = {};
         if (myDate.isValid) {
-          if (estFerie(myDate)) specialType = 'ferie';
-          else if (myDate.day() === 0 || myDate.day() === 6) specialType = 'WE';
+          if (estFerie(myDate)) styleToApply = StyleTableCell.ferie
+          else if (myDate.day() === 0 || myDate.day() === 6) styleToApply = StyleTableCell.WE;
         }
 
         return (
           <TableCell
             {...others}
-            className={`${type} ${specialType}`}
+            sx={{ ...styleToApply}}
             onContextMenu={(event) => handleCellClick(event, myDate)}
             onMouseDown={(event) => onMouseDown(event, myDate)}
             onMouseUp={(event) => onMouseUp(event, myDate)}
@@ -341,7 +342,7 @@ export default function Calendrier(props) {
               {Array.from(range.snapTo('year').by('year')).map((years) => (
                 <React.Fragment key={years.format('Y')}>
                   <TableCell
-                    className="annee"
+                    sx={{ ...StyleTableCell.annee }}
                     colSpan={4 * NbMonthByYear(range, years.year())}
                   >
                     {years.format('YYYY')}
@@ -352,7 +353,7 @@ export default function Calendrier(props) {
             <TableRow>
               {Array.from(range.by('month')).map((month) => (
                 <React.Fragment key={month.format('M')}>
-                  <TableCell className="mois largeurmois" colSpan={4}>
+                  <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
                     {month.locale('fr-FR').format('MMMM')}
                   </TableCell>
                 </React.Fragment>
