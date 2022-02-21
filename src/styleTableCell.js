@@ -71,7 +71,7 @@ export const journeeConge = {
 };
 
 export const demiJourneeSansConge = {
-  ...colonneConges,  width:'30px',
+  ...colonneConges,  
 };
 
 export const demiJourneeConge = {
@@ -97,7 +97,7 @@ export const autresZones = {
   borderLeftColor: couleurVacancesAutres,
 };
 
-const highlighted = {
+export const highlighted = {
   opacity: 0.5,
 }
 

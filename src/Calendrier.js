@@ -31,9 +31,13 @@ export default function Calendrier(props) {
 
   const [lignes, setLignes] = React.useState([]);
 
-  const [highlighted, setHighlighted] = React.useState([]);
+  const [highlighted, setHighlighted] = React.useState(null);
 
   const [conges, setConges] = React.useState([]);
+
+  const [clicked, setClicked] = React.useState(0);
+
+  const [startDate, setStartDate] = React.useState(null);
 
   var dateDebut = moment([annee, 8, 1]);
   var dateFin = moment([annee, 11, 31]);
@@ -59,32 +63,25 @@ export default function Calendrier(props) {
     setActiveMenu(false);
   };
 
-  const [mouseDown, setMouseDown] = React.useState(false);
-  const [startDate, setStartDate] = React.useState(null);
-
   function onMouseDown(event, myDate) {
     event.preventDefault();
-    setMouseDown(true);
+    setClicked(1);
     setStartDate(myDate);
-    setHighlighted([myDate.format('yyyy-MM-DD')]);
+    setHighlighted(moment.range(myDate, myDate));
   }
 
   function onMouseOver(event, myDate) {
     event.preventDefault();
-    if (mouseDown) {
-      setHighlighted(() => {
-        var result = [];
-        for (let day of moment.range(startDate, myDate).by('day')) {
-          result = [...result, day.format('yyyy-MM-DD')];
-        }
-        return result;
-      });
+    if (clicked === 1) {
+      setHighlighted(moment.range(startDate, myDate));
     }
   }
 
   function onMouseUp(event) {
     event.preventDefault();
-    setMouseDown(false);
+    console.log('coucou');
+    setClicked(0);
+
     setMousePos({
       mouseX: event.clientX - 2,
       mouseY: event.clientY - 4,
@@ -104,7 +101,7 @@ export default function Calendrier(props) {
   const handleMenuItemClick = (event, abr, type) => {
     handleNewConge(abr, type);
     setActiveMenu(false);
-    setHighlighted([]);
+    setHighlighted(null);
   };
 
   function uuidv4() {
@@ -119,7 +116,8 @@ export default function Calendrier(props) {
   const handleNewConge = (abreviation, type) => {
     let newConges = [];
     // on va ajouter/modifier avec le PUT tous les jours "highlighted"
-    highlighted.forEach((oneHighlighted) => {
+    console.log(JSON.stringify(highlighted.by('days')))
+    highlighted.by('days').forEach((oneHighlighted) => {
       // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
       let date = moment(oneHighlighted, 'yyyy-MM-DD');
       let day = date.day();
@@ -164,10 +162,7 @@ export default function Calendrier(props) {
 
     //on complète avec les jours présents dans "conges" qui n'étaient pas highlighted
     conges.forEach((oneConge) => {
-      if (
-        highlighted.filter((oneHighlighted) => oneHighlighted === oneConge.date)
-          .length === 0
-      )
+      if (!highlighted.contains(moment(oneConge.date, 'YYYY-MM-DD')))
         newConges = [...newConges, oneConge];
     });
 
@@ -203,13 +198,13 @@ export default function Calendrier(props) {
         );
 
         if (!conge) {
-          return <CommonTableCellCalendrier colspan={2} type="" />;
+          return <CommonTableCellCalendrier colSpan={2} type="sansConge" />;
         }
 
         if (conge.duree === 'J')
           return (
             <CommonTableCellCalendrier
-              colspan={2}
+              colSpan={2}
               type="journeeConge"
               duree="J"
               children={conge?.abr}
@@ -231,8 +226,8 @@ export default function Calendrier(props) {
               <CommonTableCellCalendrier
                 type={
                   conge.duree === 'PM'
-                    ? 'demiJourneeCongePM'
-                    : 'demiJourneeSansCongePM'
+                    ? 'demiJourneeConge'
+                    : 'demiJourneeSansConge'
                 }
                 duree="PM"
                 children={conge.duree === 'PM' && conge.abr}
@@ -282,7 +277,7 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
-  }, [highlighted, mouseDown, conges]);
+  }, [highlighted, clicked, conges]);
 
   React.useEffect(() => {
     getApiData().then((data) => setConges(data));
