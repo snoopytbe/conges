@@ -1,7 +1,6 @@
 import React from 'react';
 import TableCell from '@mui/material/TableCell';
 import { estFerie } from './joursFeries';
-import moment from 'moment';
 import * as StyleTableCell from './styleTableCell';
 
 function styleHighlight(myDate, type, duree, highlighted) {
@@ -9,30 +8,21 @@ function styleHighlight(myDate, type, duree, highlighted) {
   var isHighlighted = highlighted?.includes(myDate.format('yyyy-MM-DD'));
 
   if (isHighlighted) {
-    var tomorrowHighlighted = highlighted.includes(
-      myDate.clone().add(1, 'day').format('yyyy-MM-DD')
-    );
+    // On regarde si le lendemain est aussi highlighted et fait partie du même mois
+    var tomorrowHighlighted =
+      highlighted.includes(myDate.clone().add(1, 'day').format('yyyy-MM-DD')) &&
+      myDate.clone().add(1, 'day').month === myDate.month;
 
-    var tomorrowSameMonth = myDate.clone().add(1, 'day').month === myDate.month;
-    tomorrowHighlighted = tomorrowHighlighted && tomorrowSameMonth;
+    if (!tomorrowHighlighted) result = StyleTableCell.highlightedTop;
 
-    var yesterdayHighlighted = highlighted.includes(
-      myDate.clone().add(-1, 'day').format('yyyy-MM-DD')
-    );
+    // On regarde si la veille est aussi highlighted et fait partie du même mois
+    var yesterdayHighlighted =
+      highlighted.includes(
+        myDate.clone().add(-1, 'day').format('yyyy-MM-DD')
+      ) && myDate.clone().add(-1, 'day').month === myDate.month;
 
-    var yesterdaySameMonth =
-      myDate.clone().add(-1, 'day').month === myDate.month;
-    yesterdayHighlighted = yesterdayHighlighted && yesterdaySameMonth;
-
-    if (tomorrowHighlighted && !yesterdayHighlighted)
-      result = StyleTableCell.highlightedTop;
-    if (!tomorrowHighlighted && yesterdayHighlighted)
-      result = StyleTableCell.highlightedBottom;
-    if (!tomorrowHighlighted && !yesterdayHighlighted)
-      result = {
-        ...StyleTableCell.highlightedBottom,
-        ...StyleTableCell.highlightedTop,
-      };
+    if (!yesterdayHighlighted)
+      result = { ...result, ...StyleTableCell.highlightedTop };
 
     switch (type) {
       case 'date':
@@ -52,11 +42,22 @@ function styleHighlight(myDate, type, duree, highlighted) {
 }
 
 export default function TableCellCalendrier(params) {
-  const { myDate, type, duree, children, ...others } = params;
+  const {
+    myDate,
+    type,
+    duree,
+    onContextMenu,
+    onMouseDown,
+    onMouseUp,
+    onMouseOver,
+    highlighted,
+    children,
+    ...others
+  } = params;
 
   var styleToApply = StyleTableCell.base;
 
-  if (moment(myDate)?.isValid) {
+  if (myDate?.isValid) {
     if (estFerie(myDate)) styleToApply = StyleTableCell.ferie;
     else if (myDate.day() === 0 || myDate.day() === 6)
       styleToApply = StyleTableCell.WE;
@@ -80,7 +81,7 @@ export default function TableCellCalendrier(params) {
     }
     styleToApply = {
       ...styleToApply,
-      ...styleHighlight(myDate, type, duree),
+      ...styleHighlight(myDate, type, duree, highlighted),
     };
   }
 
@@ -88,9 +89,9 @@ export default function TableCellCalendrier(params) {
     <TableCell
       {...others}
       sx={{ ...styleToApply }}
-      onContextMenu={(event) => handleCellClick(event, myDate)}
+      onMouseUp={(event) => console.log('coucou')}
+      onContextMenu={(event) => onContextMenu(event)}
       onMouseDown={(event) => onMouseDown(event, myDate)}
-      onMouseUp={(event) => onMouseUp(event, myDate)}
       onMouseOver={(event) => onMouseOver(event, myDate)}
     >
       {children}

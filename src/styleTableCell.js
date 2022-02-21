@@ -21,6 +21,7 @@ export const base = {
   fontSize: '0.7em',
   textAlign: 'center',
   color: couleurPolice,
+userSelect: 'none',
 };
 
 export const annee = {
@@ -66,12 +67,11 @@ export const sansConge = {
 }
 
 export const journeeConge = {
-  ...sansConge,
-  backgroundColor: couleurConges,
+  ...sansConge,backgroundColor: couleurConges,
 };
 
 export const demiJourneeSansConge = {
-  ...colonneConges,
+  ...colonneConges,  width:'30px',
 };
 
 export const demiJourneeConge = {
@@ -113,7 +113,7 @@ export const highlightedRight = {
 
 export const highlightedTop = {
   ...highlighted,
-  borderBottomColor: black,
+  borderTopColor: black,
 }
 
 export const highlightedBottom = {

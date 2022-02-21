@@ -55,15 +55,6 @@ export default function Calendrier(props) {
     { menu: 'Après-midi', abr: 'PM', type: 'temps' },
   ];
 
-  function handleCellClick(event) {
-    event.preventDefault();
-    setMousePos({
-      mouseX: event.clientX - 2,
-      mouseY: event.clientY - 4,
-    });
-    setActiveMenu(true);
-  }
-
   const handleDescrClose = () => {
     setActiveMenu(false);
   };
@@ -100,6 +91,21 @@ export default function Calendrier(props) {
     });
     setActiveMenu(true);
   }
+
+  function onContextMenu(event) {
+    event.preventDefault();
+    setMousePos({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4,
+    });
+    setActiveMenu(true);
+  }
+
+  const handleMenuItemClick = (event, abr, type) => {
+    handleNewConge(abr, type);
+    setActiveMenu(false);
+    setHighlighted([]);
+  };
 
   function uuidv4() {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
@@ -169,12 +175,6 @@ export default function Calendrier(props) {
     setConges(newConges);
   };
 
-  const handleMenuItemClick = (event, abr, type) => {
-    handleNewConge(abr, type);
-    setActiveMenu(false);
-    setHighlighted([]);
-  };
-
   function colonnes(index) {
     const result = [];
 
@@ -183,62 +183,60 @@ export default function Calendrier(props) {
 
       let isValidDate = myDate.isValid();
 
+      function CommonTableCellCalendrier(params) {
+        return (
+          <TableCellCalendrier
+            myDate={myDate}
+            highlighted={highlighted}
+            onContextMenu={onContextMenu}
+            onMouseDown={onMouseDown}
+            onMouseUp={onMouseUp}
+            onMouseOver={onMouseOver}
+            {...params}
+          />
+        );
+      }
+
       function tableCellConge() {
         let conge = conges.find(
           (item) => item.date === myDate.format('YYYY-MM-DD')
         );
 
         if (!conge) {
-          return (
-            <TableCellCalendrier
-              colspan={2}
-              type=""
-              myDate={myDate}
-              highlighted={highlighted}
-            ></TableCellCalendrier>
-          );
+          return <CommonTableCellCalendrier colspan={2} type="" />;
         }
 
         if (conge.duree === 'J')
           return (
-            <TableCellCalendrier
+            <CommonTableCellCalendrier
               colspan={2}
               type="journeeConge"
               duree="J"
-              myDate={myDate}
-              highlighted={highlighted}
-            >
-              {conge?.abr}
-            </TableCellCalendrier>
+              children={conge?.abr}
+            />
           );
         else
           return (
             <>
-              <TableCellCalendrier
+              <CommonTableCellCalendrier
                 type={
                   conge.duree === 'AM'
                     ? 'demiJourneeConge'
                     : 'demiJourneeSansConge'
                 }
                 duree="AM"
-                myDate={myDate}
-                highlighted={highlighted}
-              >
-                {conge.duree === 'AM' && conge.abr}
-              </TableCellCalendrier>
+                children={conge.duree === 'AM' && conge.abr}
+              />
 
-              <TableCellCalendrier
+              <CommonTableCellCalendrier
                 type={
                   conge.duree === 'PM'
                     ? 'demiJourneeCongePM'
                     : 'demiJourneeSansCongePM'
                 }
                 duree="PM"
-                myDate={myDate}
-                highlighted={highlighted}
-              >
-                {conge.duree === 'PM' && conge.abr}
-              </TableCellCalendrier>
+                children={conge.duree === 'PM' && conge.abr}
+              />
             </>
           );
       }
@@ -246,11 +244,13 @@ export default function Calendrier(props) {
       result.push(
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
-          <TableCellCalendrier type="date" myDate={myDate} highlighted={highlighted}>
-            {isValidDate &&
-              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
-            
-          </TableCellCalendrier>
+          <CommonTableCellCalendrier
+            type="date"
+            children={
+              isValidDate &&
+              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()
+            }
+          />
 
           {tableCellConge()}
 
