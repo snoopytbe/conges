@@ -16,6 +16,8 @@ export const base = {
   backgroundColor: 'white',
   paddingBottom: '1px',
   paddingTop: '1px',
+  paddingLeft: '5px',
+  paddingRight: '5px',
   fontSize: '0.7em',
   textAlign: 'center',
   color: couleurPolice,
@@ -35,11 +37,8 @@ export const mois = {
 
 export const date = {
   ...base,
-  textAlign: 'left',
   color: black,
   width: '30px',
-  paddingLeft: '10px',
-  paddingRight: '5px',
   backgroundColor: white,
   borderColor: 'D2D2D2',
 };
@@ -56,36 +55,33 @@ export const ferie = {
   borderColor: couleurJourFerie,
 },
 
-const conges = {
+const colonneConges = {
   ...base,
-  backgroundColor: couleurConges,
   color: black,
 };
 
-export const congeMatin = {
-  ...conges,
-  paddingLeft: '5px',
-  paddingRight: '5px',
-  width: '50px',
+export const sansConge = {
+  ...colonneConges,
+  width: '60px',
+}
+
+export const journeeConge = {
+  ...sansConge,
+  backgroundColor: couleurConges,
 };
 
-export const congeApresMidi = {
-  ...conges,
-  paddingLeft: '5px',
-  paddingRight: '10px',
-  width: '50px',
+export const demiJourneeSansConge = {
+  ...colonneConges,
 };
 
-export const congeJournee = {
-  ...conges,
-  paddingLeft: '5px',
-  paddingRight: '10px',
-  width: '100px',
+export const demiJourneeConge = {
+  ...demiJourneeSansConge,
+  backgroundColor: couleurConges,
 };
 
 export const vacances = {
   ...base,
-  width: '7px',
+  width: '2px',
   padding: '1px',
 };
 
@@ -101,25 +97,27 @@ export const autresZones = {
   borderLeftColor: couleurVacancesAutres,
 };
 
-/*export const StyleTableCell = (theme) => ({
+const highlighted = {
+  opacity: 0.5,
+}
 
+export const highlightedLeft = {
+  ...highlighted,
+  borderLeftColor: black,
+}
 
-    '&.highlighted': {
-      opacity: 0.5,
-      left: {
-        borderLeftColor: black,
-      },
-      right: {
-        borderRightColor: black,
-      },
-      top: {
-        borderTopColor: black,
-      },
-      bottom: {
-        borderBottomColor: black,
-      },
-    },
-  },
-});
+export const highlightedRight = {
+  ...highlighted,
+  borderRightColor: black,
+}
 
-export default withStyles(StyleTableCell, { name: 'MyTableCell' })(TableCell);*/
+export const highlightedTop = {
+  ...highlighted,
+  borderBottomColor: black,
+}
+
+export const highlightedBottom = {
+  ...highlighted,
+  borderBottomColor: black,
+}
+

@@ -16,6 +16,7 @@ import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
 import { getApiData, putApiData, deleteApiData } from './ApiData';
 import * as StyleTableCell from './styleTableCell';
+import TableCellCalendrier from './TableCellCalendrier';
 
 moment.locale('fr-FR');
 
@@ -35,7 +36,7 @@ export default function Calendrier(props) {
   const [conges, setConges] = React.useState([]);
 
   var dateDebut = moment([annee, 8, 1]);
-  var dateFin = moment([annee, 10, 30]);
+  var dateFin = moment([annee, 11, 31]);
   //var dateFin = moment([annee + 1, 7, 30]);
   var range = moment.range(dateDebut, dateFin);
 
@@ -119,20 +120,23 @@ export default function Calendrier(props) {
 
       if (!estFerie(date) && !(day === 0) && !(day === 6)) {
         // On commence par chercher l'id et on le créé s'il n'existe pas
+        console.log(
+          conges.filter((oneConge) => oneConge.date === oneHighlighted)
+        );
         let id =
           conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-            .id ?? uuidv4();
+            ?.id ?? uuidv4();
 
         let duree =
           type === 'temps'
             ? abreviation
             : conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-                .duree ?? 'J';
+                ?.duree ?? 'J';
 
         let abr =
           type === 'temps'
             ? conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-                .abr
+                ?.abr
             : abreviation;
 
         let data = {
@@ -174,93 +178,10 @@ export default function Calendrier(props) {
   function colonnes(index) {
     const result = [];
 
-    function styleHighlight(myDate, colonne) {
-      var result = '';
-      var isHighlighted = highlighted.includes(myDate.format('yyyy-MM-DD'));
-      if (isHighlighted) {
-        var tomorrowHighlighted = highlighted.includes(
-          myDate.clone().add(1, 'day').format('yyyy-MM-DD')
-        );
-        var tomorrowSameMonth =
-          myDate.clone().add(1, 'day').month === myDate.month;
-        tomorrowHighlighted = tomorrowHighlighted && tomorrowSameMonth;
-
-        var yesterdayHighlighted = highlighted.includes(
-          myDate.clone().add(-1, 'day').format('yyyy-MM-DD')
-        );
-        var yesterdaySameMonth =
-          myDate.clone().add(-1, 'day').month === myDate.month;
-        yesterdayHighlighted = yesterdayHighlighted && yesterdaySameMonth;
-
-        if (tomorrowHighlighted && !yesterdayHighlighted)
-          result = 'highlightedTop';
-        if (!tomorrowHighlighted && yesterdayHighlighted)
-          result = 'highlightedBottom';
-        if (!tomorrowHighlighted && !yesterdayHighlighted)
-          result = 'highlightedTop highlightedBottom';
-
-        if (colonne == 'gauche') {
-          result += ' highlightedLeft';
-        } else {
-          result += ' highlightedRight';
-        }
-      }
-      return result;
-    }
-
     Array.from(range.by('month')).map((month) => {
       let myDate = moment([month.year(), month.month(), index + 1]);
 
       let isValidDate = myDate.isValid();
-
-      let classDescription = isValidDate
-        ? estFerie(myDate)
-          ? 'ferie'
-          : myDate.day() === 0 || myDate.day() === 6
-          ? 'dimanche'
-          : 'jour'
-        : 'noDate';
-
-      function MyTableCell(params) {
-        const { type, text, ...others } = params;
-        var styleToApply = StyleTableCell.base;
-        if (myDate.isValid) {
-          if (estFerie(myDate)) styleToApply = StyleTableCell.ferie;
-          else if (myDate.day() === 0 || myDate.day() === 6)
-            styleToApply = StyleTableCell.WE;
-          else {
-            switch (type) {
-              case 'date':
-                styleToApply = StyleTableCell.date;
-                break;
-              case 'congeJournee':
-                styleToApply = StyleTableCell.congeJournee;
-                break;
-              case 'congeMatin':
-                styleToApply = StyleTableCell.congeMatin;
-                break;
-              case 'congeApresMidi':
-                styleToApply = StyleTableCell.congeApresMidi;
-                break;
-              default:
-                StyleTableCell.base;
-            }
-          }
-        }
-
-        return (
-          <TableCell
-            {...others}
-            sx={{ ...styleToApply }}
-            onContextMenu={(event) => handleCellClick(event, myDate)}
-            onMouseDown={(event) => onMouseDown(event, myDate)}
-            onMouseUp={(event) => onMouseUp(event, myDate)}
-            onMouseOver={(event) => onMouseOver(event, myDate)}
-          >
-            {text}
-          </TableCell>
-        );
-      }
 
       function tableCellConge() {
         let conge = conges.find(
@@ -268,29 +189,56 @@ export default function Calendrier(props) {
         );
 
         if (!conge) {
-          conge = { duree: 'J', abr: '' };
+          return (
+            <TableCellCalendrier
+              colspan={2}
+              type=""
+              myDate={myDate}
+              highlighted={highlighted}
+            ></TableCellCalendrier>
+          );
         }
 
         if (conge.duree === 'J')
           return (
-            <MyTableCell
+            <TableCellCalendrier
               colspan={2}
-              type="congeJournee"
-              text={isValidDate && conge?.abr}
-            />
+              type="journeeConge"
+              duree="J"
+              myDate={myDate}
+              highlighted={highlighted}
+            >
+              {conge?.abr}
+            </TableCellCalendrier>
           );
         else
           return (
             <>
-              <MyTableCell
-                type="congeMatin"
-                text={isValidDate && conge.duree === 'AM' && conge.abr}
-              />
+              <TableCellCalendrier
+                type={
+                  conge.duree === 'AM'
+                    ? 'demiJourneeConge'
+                    : 'demiJourneeSansConge'
+                }
+                duree="AM"
+                myDate={myDate}
+                highlighted={highlighted}
+              >
+                {conge.duree === 'AM' && conge.abr}
+              </TableCellCalendrier>
 
-              <MyTableCell
-                type="congeApresMidi"
-                text={isValidDate && conge.duree === 'PM' && conge.abr}
-              />
+              <TableCellCalendrier
+                type={
+                  conge.duree === 'PM'
+                    ? 'demiJourneeCongePM'
+                    : 'demiJourneeSansCongePM'
+                }
+                duree="PM"
+                myDate={myDate}
+                highlighted={highlighted}
+              >
+                {conge.duree === 'PM' && conge.abr}
+              </TableCellCalendrier>
             </>
           );
       }
@@ -298,13 +246,11 @@ export default function Calendrier(props) {
       result.push(
         // Numéro du jour
         <React.Fragment key={'colonne' + index + 'i' + month.month()}>
-          <MyTableCell
-            type="date"
-            text={
-              isValidDate &&
-              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()
-            }
-          />
+          <TableCellCalendrier type="date" myDate={myDate} highlighted={highlighted}>
+            {isValidDate &&
+              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()}
+            
+          </TableCellCalendrier>
 
           {tableCellConge()}
 
@@ -317,7 +263,7 @@ export default function Calendrier(props) {
                   : estVacances(myDate, 'A') || estVacances(myDate, 'B')
                   ? StyleTableCell.autresZones
                   : StyleTableCell.vacances
-                : ''),
+                : StyleTableCell.vacances),
             }}
           />
         </React.Fragment>
@@ -354,7 +300,7 @@ export default function Calendrier(props) {
   return (
     <div>
       <p>{/*JSON.stringify(conges)*/}</p>
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} style={{ width: 'fit-content' }}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
             <TableRow>
