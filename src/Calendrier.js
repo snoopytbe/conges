@@ -35,7 +35,7 @@ export default function Calendrier(props) {
 
   const [conges, setConges] = React.useState([]);
 
-  const [clicked, setClicked] = React.useState(0);
+  const [clicked, setClicked] = React.useState(false);
 
   const [startDate, setStartDate] = React.useState(null);
 
@@ -63,31 +63,30 @@ export default function Calendrier(props) {
     setActiveMenu(false);
   };
 
-  function onMouseDown(event, myDate) {
-    event.preventDefault();
-    setClicked(1);
-    setStartDate(myDate);
-    setHighlighted(moment.range(myDate, myDate));
-  }
+  const onClick = React.useCallback(
+    (event, myDate) => {
+      event.preventDefault();
 
-  function onMouseOver(event, myDate) {
-    event.preventDefault();
-    if (clicked === 1) {
-      setHighlighted(moment.range(startDate, myDate));
-    }
-  }
-
-  function onMouseUp(event) {
-    event.preventDefault();
-    console.log('coucou');
-    setClicked(0);
-
-    setMousePos({
-      mouseX: event.clientX - 2,
-      mouseY: event.clientY - 4,
-    });
-    setActiveMenu(true);
-  }
+      if (!clicked) {
+        setStartDate(myDate);
+        setHighlighted(moment.range(myDate, myDate));
+      } else {
+        setHighlighted(
+          moment.range(
+            moment.min(startDate, myDate),
+            moment.max(startDate, myDate)
+          )
+        );
+        setMousePos({
+          mouseX: event.clientX - 2,
+          mouseY: event.clientY - 4,
+        });
+        setActiveMenu(true);
+      }
+      setClicked(!clicked);
+    },
+    [clicked]
+  );
 
   function onContextMenu(event) {
     event.preventDefault();
@@ -116,7 +115,7 @@ export default function Calendrier(props) {
   const handleNewConge = (abreviation, type) => {
     let newConges = [];
     // on va ajouter/modifier avec le PUT tous les jours "highlighted"
-    console.log(JSON.stringify(highlighted.by('days')))
+    console.log(JSON.stringify(highlighted.by('days')));
     highlighted.by('days').forEach((oneHighlighted) => {
       // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
       let date = moment(oneHighlighted, 'yyyy-MM-DD');
@@ -184,9 +183,8 @@ export default function Calendrier(props) {
             myDate={myDate}
             highlighted={highlighted}
             onContextMenu={onContextMenu}
-            onMouseDown={onMouseDown}
-            onMouseUp={onMouseUp}
-            onMouseOver={onMouseOver}
+            onClick={onClick}
+            setHighlighted={setHighlighted}
             {...params}
           />
         );
@@ -277,7 +275,7 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
-  }, [highlighted, clicked, conges]);
+  }, [clicked, conges]);
 
   React.useEffect(() => {
     getApiData().then((data) => setConges(data));

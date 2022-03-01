@@ -121,3 +121,7 @@ export const highlightedBottom = {
   borderBottomColor: black,
 }
 
+export const highlightedFirstLast = {
+  opacity: 0.3
+}
+

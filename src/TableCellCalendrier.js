@@ -43,6 +43,13 @@ function styleHighlight(myDate, type, duree, highlighted) {
       default:
         result = { ...result, ...StyleTableCell.highlighted };
     }
+
+    if (
+      !highlighted?.contains(myDate.clone().add(1, 'day')) ||
+      !highlighted?.contains(myDate.clone().add(-1, 'day'))
+    ) {
+      result = { ...result, ...StyleTableCell.highlightedFirstLast };
+    }
   }
   return result;
 }
@@ -50,13 +57,11 @@ function styleHighlight(myDate, type, duree, highlighted) {
 export default function TableCellCalendrier(params) {
   const {
     myDate,
+    highlighted,
+    onContextMenu,
+    onClick,
     type,
     duree,
-    onContextMenu,
-    onMouseDown,
-    onMouseUp,
-    onMouseOver,
-    highlighted,
     children,
     ...others
   } = params;
@@ -95,10 +100,8 @@ export default function TableCellCalendrier(params) {
     <TableCell
       {...others}
       sx={{ ...styleToApply }}
-      onMouseUp={(event) => onMouseUp(event)}
+      onClick={(event) => onClick(event, myDate)}
       onContextMenu={(event) => onContextMenu(event)}
-      onMouseDown={(event) => onMouseDown(event, myDate)}
-      onMouseOver={(event) => onMouseOver(event, myDate)}
     >
       {children}
     </TableCell>
