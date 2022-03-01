@@ -184,7 +184,6 @@ export default function Calendrier(props) {
             highlighted={highlighted}
             onContextMenu={onContextMenu}
             onClick={onClick}
-            setHighlighted={setHighlighted}
             {...params}
           />
         );
@@ -196,7 +195,9 @@ export default function Calendrier(props) {
         );
 
         if (!conge) {
-          return <CommonTableCellCalendrier colSpan={2} type="sansConge" />;
+          return (
+            <CommonTableCellCalendrier colSpan={2} type="sansConge" duree="J" />
+          );
         }
 
         if (conge.duree === 'J')

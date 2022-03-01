@@ -1,26 +1,37 @@
 import React from 'react';
 import TableCell from '@mui/material/TableCell';
+import Tooltip from '@mui/material/Tooltip';
 import { estFerie } from './joursFeries';
 import * as StyleTableCell from './styleTableCell';
 import moment from 'moment';
 import { extendMoment } from 'moment-range';
 moment = extendMoment(moment);
 
+function isFirstDayHighlighted(myDate, highlighted) {
+  var result = false;
+  if (highlighted?.contains(myDate))
+    result = !highlighted?.contains(myDate.clone().add(-1, 'day'));
+  return result;
+}
+
+function isLastDayHighlighted(myDate, highlighted) {
+  return !highlighted?.contains(myDate.clone().add(1, 'day'));
+}
+
 function styleHighlight(myDate, type, duree, highlighted) {
   var result = '';
-  var isHighlighted = highlighted?.contains(myDate);
 
-  if (isHighlighted) {
+  if (highlighted?.contains(myDate)) {
     // On regarde si le lendemain est aussi highlighted et fait partie du même mois
     var tomorrowHighlighted =
-      highlighted?.contains(myDate.clone().add(1, 'day')) &&
+      !isLastDayHighlighted(myDate, highlighted) &&
       myDate.clone().add(1, 'day').month === myDate.month;
 
     if (!tomorrowHighlighted) result = StyleTableCell.highlightedBottom;
 
     // On regarde si la veille est aussi highlighted et fait partie du même mois
     var yesterdayHighlighted =
-      highlighted?.contains(myDate.clone().add(-1, 'day')) &&
+      !isFirstDayHighlighted(myDate, highlighted) &&
       myDate.clone().add(-1, 'day').month === myDate.month;
 
     if (!yesterdayHighlighted)
@@ -45,12 +56,20 @@ function styleHighlight(myDate, type, duree, highlighted) {
     }
 
     if (
-      !highlighted?.contains(myDate.clone().add(1, 'day')) ||
-      !highlighted?.contains(myDate.clone().add(-1, 'day'))
+      isFirstDayHighlighted(myDate, highlighted) ||
+      isLastDayHighlighted(myDate, highlighted)
     ) {
       result = { ...result, ...StyleTableCell.highlightedFirstLast };
     }
   }
+  return result;
+}
+
+function showTooltip(myDate, highlighted, duree) {
+  var result = false;
+  console.log(duree)
+  if (duree === 'J' || duree === 'AM')
+    result = isFirstDayHighlighted(myDate, highlighted);
   return result;
 }
 
@@ -97,13 +116,24 @@ export default function TableCellCalendrier(params) {
   }
 
   return (
-    <TableCell
-      {...others}
-      sx={{ ...styleToApply }}
-      onClick={(event) => onClick(event, myDate)}
-      onContextMenu={(event) => onContextMenu(event)}
+    <Tooltip
+      title={
+        showTooltip(myDate, highlighted, duree)
+          ? 'Cliquez sur la date de fin'
+          : ''
+      }
+      open={true}
+      placement="right"
+      arrow
     >
-      {children}
-    </TableCell>
+      <TableCell
+        {...others}
+        sx={{ ...styleToApply }}
+        onClick={(event) => onClick(event, myDate)}
+        onContextMenu={(event) => onContextMenu(event)}
+      >
+        {children}
+      </TableCell>
+    </Tooltip>
   );
 }
