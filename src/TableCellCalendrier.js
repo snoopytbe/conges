@@ -65,11 +65,11 @@ function styleHighlight(myDate, type, duree, highlighted) {
   return result;
 }
 
-function showTooltip(myDate, highlighted, duree) {
+function showTooltip(myDate, highlighted, duree,clicked) {
   var result = false;
-  console.log(duree)
+  //console.log(duree)
   if (duree === 'J' || duree === 'AM')
-    result = isFirstDayHighlighted(myDate, highlighted);
+    result = clicked && isFirstDayHighlighted(myDate, highlighted);
   return result;
 }
 
@@ -81,6 +81,7 @@ export default function TableCellCalendrier(params) {
     onClick,
     type,
     duree,
+    clicked,
     children,
     ...others
   } = params;
@@ -118,7 +119,7 @@ export default function TableCellCalendrier(params) {
   return (
     <Tooltip
       title={
-        showTooltip(myDate, highlighted, duree)
+        showTooltip(myDate, highlighted, duree, clicked)
           ? 'Cliquez sur la date de fin'
           : ''
       }

@@ -17,6 +17,7 @@ import { estVacances } from './vacances';
 import { getApiData, putApiData, deleteApiData } from './ApiData';
 import * as StyleTableCell from './styleTableCell';
 import TableCellCalendrier from './TableCellCalendrier';
+import handleNewConge from './conges';
 
 moment.locale('fr-FR');
 
@@ -39,9 +40,8 @@ export default function Calendrier(props) {
 
   const [startDate, setStartDate] = React.useState(null);
 
-  var dateDebut = moment([annee, 8, 1]);
+  var dateDebut = moment([annee, 0, 1]);
   var dateFin = moment([annee, 11, 31]);
-  //var dateFin = moment([annee + 1, 7, 30]);
   var range = moment.range(dateDebut, dateFin);
 
   const zone = 'C';
@@ -98,78 +98,15 @@ export default function Calendrier(props) {
   }
 
   const handleMenuItemClick = (event, abr, type) => {
-    handleNewConge(abr, type);
+    event.preventDefault();
+    //console.log(highlighted);
+    var newConges = handleNewConge(abr, type, conges, highlighted);
+    setConges(newConges);
     setActiveMenu(false);
     setHighlighted(null);
   };
 
-  function uuidv4() {
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-      (
-        c ^
-        (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
-      ).toString(16)
-    );
-  }
-
-  const handleNewConge = (abreviation, type) => {
-    let newConges = [];
-    // on va ajouter/modifier avec le PUT tous les jours "highlighted"
-    console.log(JSON.stringify(highlighted.by('days')));
-    highlighted.by('days').forEach((oneHighlighted) => {
-      // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
-      let date = moment(oneHighlighted, 'yyyy-MM-DD');
-      let day = date.day();
-
-      if (!estFerie(date) && !(day === 0) && !(day === 6)) {
-        // On commence par chercher l'id et on le créé s'il n'existe pas
-        console.log(
-          conges.filter((oneConge) => oneConge.date === oneHighlighted)
-        );
-        let id =
-          conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-            ?.id ?? uuidv4();
-
-        let duree =
-          type === 'temps'
-            ? abreviation
-            : conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-                ?.duree ?? 'J';
-
-        let abr =
-          type === 'temps'
-            ? conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-                ?.abr
-            : abreviation;
-
-        let data = {
-          date: oneHighlighted,
-          abr: abr,
-          id: id,
-          duree: duree,
-        };
-
-        //console.log(data)
-        if (!abr) {
-          deleteApiData([data]);
-        } else {
-          putApiData([data]);
-          newConges = [...newConges, data];
-        }
-      }
-    });
-
-    //on complète avec les jours présents dans "conges" qui n'étaient pas highlighted
-    conges.forEach((oneConge) => {
-      if (!highlighted.contains(moment(oneConge.date, 'YYYY-MM-DD')))
-        newConges = [...newConges, oneConge];
-    });
-
-    //console.log(conges)
-    setConges(newConges);
-  };
-
-  function colonnes(index) {
+  function getLignes(index) {
     const result = [];
 
     Array.from(range.by('month')).map((month) => {
@@ -184,13 +121,14 @@ export default function Calendrier(props) {
             highlighted={highlighted}
             onContextMenu={onContextMenu}
             onClick={onClick}
+            clicked={clicked}
             {...params}
           />
         );
       }
 
       function tableCellConge() {
-        let conge = conges.find(
+        let conge = conges?.find(
           (item) => item.date === myDate.format('YYYY-MM-DD')
         );
 
@@ -237,7 +175,7 @@ export default function Calendrier(props) {
 
       result.push(
         // Numéro du jour
-        <React.Fragment key={'colonne' + index + 'i' + month.month()}>
+        <React.Fragment key={'ligne' + index + 'i' + month.month()}>
           <CommonTableCellCalendrier
             type="date"
             children={
@@ -272,7 +210,7 @@ export default function Calendrier(props) {
     for (let i = 0; i < 31; i++)
       newLigne = [
         ...newLigne,
-        <TableRow key={'colonne' + i}>{colonnes(i)}</TableRow>,
+        <TableRow key={'ligne' + i}>{getLignes(i)}</TableRow>,
       ];
 
     setLignes(newLigne);

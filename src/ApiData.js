@@ -7,7 +7,7 @@ export function getApiData() {
   return axios
     .get(URL + '/items')
     .then((res) => {
-      console.log(res.data.Items);
+      //console.log(res.data.Items);
       return res.data.Items;
     })
     .catch((err) => {
