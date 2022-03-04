@@ -1,14 +1,13 @@
 import React from 'react';
-import 'date-fns';
-import frLocale from 'date-fns/locale/fr';
-import format from 'date-fns/format';
-import DateFnsUtils from '@date-io/date-fns';
+import AdapterMoment from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import DatePicker from '@mui/lab/DatePicker';
 import moment from 'moment';
 import 'moment/min/locales.min';
 
-export default function ControllerDatePicker(props) {
+moment.locale('fr-FR');
+
+export default function DatePicker(props) {
   const { name, label, onChangeHandler, limit, ...other } = props;
 
   return (
