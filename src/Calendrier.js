@@ -12,12 +12,12 @@ import moment from 'moment';
 import { extendMoment } from 'moment-range';
 moment = extendMoment(moment);
 import 'moment/min/locales.min';
-import { estFerie } from './joursFeries';
 import { estVacances } from './vacances';
-import { getApiData, putApiData, deleteApiData } from './ApiData';
+import { getApiData } from './ApiData';
 import * as StyleTableCell from './styleTableCell';
 import TableCellCalendrier from './TableCellCalendrier';
 import handleNewConge from './conges';
+import DateRangeDialog from './DateRangeDialog';
 
 moment.locale('fr-FR');
 
@@ -39,6 +39,8 @@ export default function Calendrier(props) {
   const [clicked, setClicked] = React.useState(false);
 
   const [startDate, setStartDate] = React.useState(null);
+
+  const [openDialog, setOpenDialog] = React.useState(false);
 
   var dateDebut = moment([annee, 0, 1]);
   var dateFin = moment([annee, 11, 31]);
@@ -241,6 +243,7 @@ export default function Calendrier(props) {
                   <TableCell
                     sx={{ ...StyleTableCell.annee }}
                     colSpan={4 * NbMonthByYear(range, years.year())}
+                    onClick={(event) => setOpenDialog(true)}
                   >
                     {years.format('YYYY')}
                   </TableCell>
@@ -288,6 +291,9 @@ export default function Calendrier(props) {
           return result;
         })}
       </Menu>
+      {openDialog && (
+        <DateRangeDialog handleClose={() => setOpenDialog(false)} />
+      )}
     </div>
   );
 }

@@ -8,10 +8,10 @@ import 'moment/min/locales.min';
 moment.locale('fr-FR');
 
 export default function DatePicker(props) {
-  const { name, label, onChangeHandler, limit, ...other } = props;
+  const { name, label, onChangeHandler, limit, value, ...other } = props;
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <LocalizationProvider dateAdapter={AdapterMoment}>
       <DatePicker
         id={'date-picker-dialog' + name}
         label={label}
@@ -25,6 +25,7 @@ export default function DatePicker(props) {
         okLabel="Valider"
         cancelLabel="Annuler"
         renderInput={(params) => <TextField {...params} helperText={null} />}
+        {...other}
       />
     </LocalizationProvider>
   );
