@@ -42,9 +42,8 @@ export default function Calendrier(props) {
 
   const [openDialog, setOpenDialog] = React.useState(false);
 
-  var dateDebut = moment([annee, 0, 1]);
-  var dateFin = moment([annee, 11, 31]);
-  var range = moment.range(dateDebut, dateFin);
+  const [dateDebut, setDateDebut] = React.useState(moment([annee, 0, 1]));
+  const [dateFin, setDateFin] = React.useState(moment([annee, 11, 31]));
 
   const zone = 'C';
 
@@ -111,7 +110,7 @@ export default function Calendrier(props) {
   function getLignes(index) {
     const result = [];
 
-    Array.from(range.by('month')).map((month) => {
+    Array.from(moment.range(dateDebut, dateFin).by('month')).map((month) => {
       let myDate = moment([month.year(), month.month(), index + 1]);
 
       let isValidDate = myDate.isValid();
@@ -216,7 +215,7 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
-  }, [clicked, conges]);
+  }, [clicked, conges, dateDebut, dateFin]);
 
   React.useEffect(() => {
     getApiData().then((data) => setConges(data));
@@ -238,11 +237,19 @@ export default function Calendrier(props) {
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
             <TableRow>
-              {Array.from(range.snapTo('year').by('year')).map((years) => (
+              {Array.from(
+                moment.range(dateDebut, dateFin).snapTo('year').by('year')
+              ).map((years) => (
                 <React.Fragment key={years.format('Y')}>
                   <TableCell
                     sx={{ ...StyleTableCell.annee }}
-                    colSpan={4 * NbMonthByYear(range, years.year())}
+                    colSpan={
+                      4 *
+                      NbMonthByYear(
+                        moment.range(dateDebut, dateFin),
+                        years.year()
+                      )
+                    }
                     onClick={(event) => setOpenDialog(true)}
                   >
                     {years.format('YYYY')}
@@ -251,13 +258,15 @@ export default function Calendrier(props) {
               ))}
             </TableRow>
             <TableRow>
-              {Array.from(range.by('month')).map((month) => (
-                <React.Fragment key={month.format('M')}>
-                  <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
-                    {month.locale('fr-FR').format('MMMM')}
-                  </TableCell>
-                </React.Fragment>
-              ))}
+              {Array.from(moment.range(dateDebut, dateFin).by('month')).map(
+                (month) => (
+                  <React.Fragment key={month.format('M')}>
+                    <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
+                      {month.locale('fr-FR').format('MMMM')}
+                    </TableCell>
+                  </React.Fragment>
+                )
+              )}
             </TableRow>
             {lignes}
           </TableBody>
@@ -292,7 +301,13 @@ export default function Calendrier(props) {
         })}
       </Menu>
       {openDialog && (
-        <DateRangeDialog handleClose={() => setOpenDialog(false)} />
+        <DateRangeDialog
+          debut={dateDebut}
+          onChangeDebut={(value) => setDateDebut(value)}
+          fin={dateFin}
+          onChangeFin={(value) => setDateFin(value)}
+          handleClose={() => setOpenDialog(false)}
+        />
       )}
     </div>
   );

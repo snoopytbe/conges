@@ -3,24 +3,33 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import DatePicker from "./DatePicker"
+import PersoDatePicker from './PersoDatePicker';
+import moment from 'moment';
+import 'moment/min/locales.min';
+
+moment.locale('fr-FR');
 
 export default function DateRangeDialog(params) {
-  const { handleClose } = params;
-  console.log('dialog');
+  const { debut, onChangeDebut, fin, onChangeFin, handleClose } = params;
+
   return (
     <div>
-      <Dialog open onClose={() => handleClose()}>
+      <Dialog open={true} onClose={() => handleClose()}>
         <DialogTitle>Changer les dates du calendrier</DialogTitle>
         <DialogContent>
-          <DialogContentText>Test</DialogContentText>
-          <DatePicker 
-          label="Mois de départ" 
-          name="debut"
-          onChangeHandler={}
-          value={moment("01012022")} />
+          <PersoDatePicker
+            label="Mois de départ"
+            name="debut"
+            value={debut}
+            onChange={(value) => onChangeDebut(value)}
+          />{' '}
+          <PersoDatePicker
+            label="Mois de fin"
+            name="fin"
+            value={fin}
+            onChange={(value) => onChangeFin(value)}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => handleClose()}>Annuler</Button>

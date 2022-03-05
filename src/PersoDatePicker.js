@@ -1,4 +1,5 @@
-import React from 'react';
+import * as React from 'react';
+import TextField from '@mui/material/TextField';
 import AdapterMoment from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import DatePicker from '@mui/lab/DatePicker';
@@ -7,25 +8,22 @@ import 'moment/min/locales.min';
 
 moment.locale('fr-FR');
 
-export default function DatePicker(props) {
-  const { name, label, onChangeHandler, limit, value, ...other } = props;
+export default function PersoDatePicker(props) {
+  const { name, label, value, onChange } = props;
 
   return (
-    <LocalizationProvider dateAdapter={AdapterMoment}>
+    <LocalizationProvider dateAdapter={AdapterMoment} locale="fr-FR">
       <DatePicker
         id={'date-picker-dialog' + name}
         label={label}
-        views={['year', 'month']}
-        format="dd/MM/yyyy"
+        views={['month', 'year']}
         value={value}
-        onChange={(date) => {
-          onChange(date);
-          onChangeHandler(name);
-        }}
         okLabel="Valider"
         cancelLabel="Annuler"
         renderInput={(params) => <TextField {...params} helperText={null} />}
-        {...other}
+        onChange={(newValue) => {
+          onChange(newValue);
+        }}
       />
     </LocalizationProvider>
   );
