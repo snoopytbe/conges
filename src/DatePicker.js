@@ -8,7 +8,7 @@ import 'moment/min/locales.min';
 
 moment.locale('fr-FR');
 
-export default function PersoDatePicker(props) {
+export default function DatePicker(props) {
   const { name, label, value, onChange } = props;
 
   return (

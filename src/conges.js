@@ -14,7 +14,22 @@ function uuidv4() {
   );
 }
 
-export default function handleNewConge(abreviation, type, conges, highlighted) {
+export function compteConges(abreviation, conge, dateDebut, dateFin) {
+  var result = 0;
+
+  conge.forEach((oneConge) => {
+    if (
+      moment(oneConge.date, 'yyyy-MM-DD').isSameOrAfter(dateDebut) &&
+      moment(oneConge.date, 'yyyy-MM-DD').isSameOrBefore(dateFin) &&
+      oneConge.abr === abreviation
+    ) {
+      result += 1;
+    }
+  });
+  return result;
+}
+
+export function handleNewConge(abreviation, type, conges, highlighted) {
   let newConges = [];
   // on va ajouter/modifier avec le PUT tous les jours "highlighted"
   //console.log(abreviation);
@@ -42,7 +57,7 @@ export default function handleNewConge(abreviation, type, conges, highlighted) {
           : abreviation;
 
       let data = {
-        date: oneHighlighted.format("yyyy-MM-DD"),
+        date: oneHighlighted.format('yyyy-MM-DD'),
         abr: abr,
         id: id,
         duree: duree,

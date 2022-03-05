@@ -16,7 +16,7 @@ import { estVacances } from './vacances';
 import { getApiData } from './ApiData';
 import * as StyleTableCell from './styleTableCell';
 import TableCellCalendrier from './TableCellCalendrier';
-import handleNewConge from './conges';
+import { handleNewConge, compteConges } from './conges';
 import DateRangeDialog from './DateRangeDialog';
 
 moment.locale('fr-FR');
@@ -38,7 +38,7 @@ export default function Calendrier(props) {
 
   const [clicked, setClicked] = React.useState(false);
 
-  const [startDate, setStartDate] = React.useState(null);
+  const [startDateHighlight, setStartDateHighlight] = React.useState(null);
 
   const [openDialog, setOpenDialog] = React.useState(false);
 
@@ -69,13 +69,13 @@ export default function Calendrier(props) {
       event.preventDefault();
 
       if (!clicked) {
-        setStartDate(myDate);
+        setStartDateHighlight(myDate);
         setHighlighted(moment.range(myDate, myDate));
       } else {
         setHighlighted(
           moment.range(
-            moment.min(startDate, myDate),
-            moment.max(startDate, myDate)
+            moment.min(startDateHighlight, myDate),
+            moment.max(startDateHighlight, myDate)
           )
         );
         setMousePos({
@@ -232,7 +232,7 @@ export default function Calendrier(props) {
 
   return (
     <div>
-      <p>{/*JSON.stringify(conges)*/}</p>
+      <p>{compteConges('MAL', conges, dateDebut, dateFin)}</p>
       <TableContainer component={Paper} style={{ width: 'fit-content' }}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
@@ -302,9 +302,9 @@ export default function Calendrier(props) {
       </Menu>
       {openDialog && (
         <DateRangeDialog
-          debut={dateDebut}
+          dateDebut={dateDebut}
           onChangeDebut={(value) => setDateDebut(value)}
-          fin={dateFin}
+          dateFin={dateFin}
           onChangeFin={(value) => setDateFin(value)}
           handleClose={() => setOpenDialog(false)}
         />
