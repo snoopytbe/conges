@@ -16,7 +16,7 @@ import { estVacances } from './vacances';
 import { getApiData } from './ApiData';
 import * as StyleTableCell from './styleTableCell';
 import TableCellCalendrier from './TableCellCalendrier';
-import { handleNewConge, compteConges } from './conges';
+import { handleNewConge, compteCongesAnnee } from './conges';
 import DateRangeDialog from './DateRangeDialog';
 
 moment.locale('fr-FR');
@@ -232,7 +232,6 @@ export default function Calendrier(props) {
 
   return (
     <div>
-      <p>{compteConges('MAL', conges, dateDebut, dateFin)}</p>
       <TableContainer component={Paper} style={{ width: 'fit-content' }}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
@@ -309,6 +308,10 @@ export default function Calendrier(props) {
           handleClose={() => setOpenDialog(false)}
         />
       )}
+      <p>
+        Sur {dateDebut.year() - 1}-{dateDebut.year()}, il reste :
+      </p>
+      <p>{JSON.stringify(compteCongesAnnee(conges, dateDebut.year() - 1))}</p>
     </div>
   );
 }

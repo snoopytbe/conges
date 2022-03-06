@@ -14,18 +14,50 @@ function uuidv4() {
   );
 }
 
-export function compteConges(abreviation, conge, dateDebut, dateFin) {
+function estWE(jour) {
+  return jour.day() === 6 || jour.day() === 0;
+}
+
+export function calculeCapitalConges(anneeDebut) {
+  var anneeCalcul = moment.range(
+    moment([anneeDebut, 4, 1]),
+    moment([anneeDebut + 1, 3, 30])
+  );
+  var nbJourOuvrables = 0;
+  Array.from(anneeCalcul.by('day')).forEach((oneDay) => {
+    if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
+  });
+  return {
+    CA: 27,
+    RTT: nbJourOuvrables - 27 - 209,
+  };
+}
+
+export function compteCongesPeriode(abr, conges, dateDebut, dateFin) {
   var result = 0;
 
-  conge.forEach((oneConge) => {
+  conges.forEach((oneConge) => {
     if (
       moment(oneConge.date, 'yyyy-MM-DD').isSameOrAfter(dateDebut) &&
       moment(oneConge.date, 'yyyy-MM-DD').isSameOrBefore(dateFin) &&
-      oneConge.abr === abreviation
+      oneConge.abr === abr
     ) {
       result += 1;
     }
   });
+  return result;
+}
+
+export function compteCongesAnnee(conges, anneeDebut) {
+  var dateDebut = moment([anneeDebut, 4, 1]);
+  var dateFin = moment([anneeDebut + 1, 3, 30]);
+
+  var result = { CA: '', RTT: '', FOR: '', MAL: '' };
+  Object.keys(result).forEach(
+    (key) =>
+      (result[key] = compteCongesPeriode(key, conges, dateDebut, dateFin))
+  );
+
   return result;
 }
 
