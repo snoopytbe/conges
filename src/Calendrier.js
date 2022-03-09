@@ -8,6 +8,7 @@ import Paper from '@mui/material/Paper';
 import Menu from '@mui/material/Menu';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
+import Typography from '@mui/material/Typography';
 import moment from 'moment';
 import { extendMoment } from 'moment-range';
 moment = extendMoment(moment);
@@ -288,6 +289,7 @@ export default function Calendrier(props) {
 
   return (
     <div>
+      <Typography variant="h5" align="center">Congés</Typography><br/>
       <Fab
         color="primary"
         size="small"
@@ -381,6 +383,7 @@ export default function Calendrier(props) {
             result = (
               <MenuItem
                 key={option.menu}
+                sx={{ fontSize: '0.8em', lineHeight: '1' }}
                 onClick={(event) =>
                   handleMenuItemClick(event, option.abr, option.type)
                 }
@@ -402,12 +405,6 @@ export default function Calendrier(props) {
           }}
         />
       )}
-      <p>
-        Sur {dateDebut.year() - 1}-{dateDebut.year()}, il reste :
-      </p>
-      <p>{JSON.stringify(compteCongesAnnee(conges, dateDebut.year() - 1))}</p>
-      <p>{calculeSoldeCongesAtDate(moment([2022, 3, 1]), 'CA', conges)}</p>
-      <p></p>
     </div>
   );
 }

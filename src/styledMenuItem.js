@@ -3,7 +3,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 export const StyledMenuItem = (theme) => ({
   root: {
-    fontSize: '0.7em',
+    fontSize: '0.6em',
   },
 });
 

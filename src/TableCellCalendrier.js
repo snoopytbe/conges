@@ -112,7 +112,7 @@ export default function TableCellCalendrier(params) {
       default:
         result = '';
     }
-    console.log(abr + " T " +result)
+    //console.log(abr + " T " +result)
     return result;
   }
 
@@ -128,11 +128,14 @@ export default function TableCellCalendrier(params) {
           styleToApply = StyleTableCell.date;
           break;
         case 'journeeConge':
-          styleToApply = {...StyleTableCell.journeeConge, ...couleurConge()} ;
-          console.log(styleToApply);
+          styleToApply = { ...StyleTableCell.journeeConge, ...couleurConge() };
+          //console.log(styleToApply);
           break;
         case 'demiJourneeConge':
-          styleToApply = { ...StyleTableCell.demiJourneeConge, ...couleurConge() };
+          styleToApply = {
+            ...StyleTableCell.demiJourneeConge,
+            ...couleurConge(),
+          };
           break;
         case 'demiJourneeSansConge':
           styleToApply = {
