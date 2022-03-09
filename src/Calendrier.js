@@ -1,33 +1,29 @@
-import React from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableContainer from '@mui/material/TableContainer';
-import TableRow from '@mui/material/TableRow';
-import TableCell from '@mui/material/TableCell';
-import Paper from '@mui/material/Paper';
-import Menu from '@mui/material/Menu';
-import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import Typography from '@mui/material/Typography';
-import moment from 'moment';
-import { extendMoment } from 'moment-range';
-moment = extendMoment(moment);
-import 'moment/min/locales.min';
-import { estVacances } from './vacances';
-import { getApiData } from './ApiData';
-import * as StyleTableCell from './styleTableCell';
-import TableCellCalendrier from './TableCellCalendrier';
-import {
-  handleNewConge,
-  compteCongesAnnee,
-  calculeSoldeCongesAtDate,
-} from './conges';
-import DateRangeDialog from './DateRangeDialog';
-import Fab from '@mui/material/Fab';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import React from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableContainer from "@mui/material/TableContainer";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import Paper from "@mui/material/Paper";
+import Menu from "@mui/material/Menu";
+import Divider from "@mui/material/Divider";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
+import Moment from "moment";
+import { extendMoment } from "moment-range";
+const moment = extendMoment(Moment);
+import "moment/min/locales.min";
+import { estVacances } from "./vacances";
+import { getApiData } from "./ApiData";
+import * as StyleTableCell from "./styleTableCell";
+import TableCellCalendrier from "./TableCellCalendrier";
+import { handleNewConge } from "./conges";
+import DateRangeDialog from "./DateRangeDialog";
+import Fab from "@mui/material/Fab";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
-moment.locale('fr-FR');
+moment.locale("fr-FR");
 
 export default function Calendrier(props) {
   const { annee } = props;
@@ -62,7 +58,7 @@ export default function Calendrier(props) {
       var newNbMonths = Math.floor(window.innerWidth / 117);
       var newDateFin = dateDebut
         .clone()
-        .add(Math.max(newNbMonths ?? 6, 2), 'months');
+        .add(Math.max(newNbMonths ?? 6, 2), "months");
 
       setNbMonths(newNbMonths);
       setDateFin(newDateFin);
@@ -70,23 +66,23 @@ export default function Calendrier(props) {
 
     handleWindowResize();
 
-    window.addEventListener('resize', handleWindowResize);
-    return () => window.removeEventListener('resize', handleWindowResize);
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
   }, []);
 
-  const zone = 'C';
+  const zone = "C";
 
   const MenuOptions = [
-    { menu: 'Congés', abr: 'CA', type: 'conge' },
-    { menu: 'RTT', abr: 'RTT', type: 'conge' },
-    { menu: 'Formation', abr: 'FOR', type: 'conge' },
-    { menu: 'Maladie', abr: 'MAL', type: 'conge' },
-    { menu: 'Présent', abr: '', type: 'conge' },
-    { menu: 'Télétravail', abr: 'TL', type: 'conge' },
-    { menu: 'Divider', abr: '', type: 'separateur' },
-    { menu: 'Journée', abr: 'J', type: 'temps' },
-    { menu: 'Matin', abr: 'AM', type: 'temps' },
-    { menu: 'Après-midi', abr: 'PM', type: 'temps' },
+    { menu: "Congés", abr: "CA", type: "conge" },
+    { menu: "RTT", abr: "RTT", type: "conge" },
+    { menu: "Formation", abr: "FOR", type: "conge" },
+    { menu: "Maladie", abr: "MAL", type: "conge" },
+    { menu: "Présent", abr: "", type: "conge" },
+    { menu: "Télétravail", abr: "TL", type: "conge" },
+    { menu: "Divider", abr: "", type: "separateur" },
+    { menu: "Journée", abr: "J", type: "temps" },
+    { menu: "Matin", abr: "AM", type: "temps" },
+    { menu: "Après-midi", abr: "PM", type: "temps" },
   ];
 
   const handleDescrClose = () => {
@@ -141,8 +137,8 @@ export default function Calendrier(props) {
 
     Array.from(
       moment
-        .range(dateDebut, dateDebut.clone().add(nbMonths, 'months'))
-        .by('month')
+        .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
+        .by("month")
     ).map((month) => {
       let myDate = moment([month.year(), month.month(), index + 1]);
 
@@ -164,7 +160,7 @@ export default function Calendrier(props) {
 
       function tableCellConge() {
         let conge = conges?.find(
-          (item) => item.date === myDate.format('YYYY-MM-DD')
+          (item) => item.date === myDate.format("YYYY-MM-DD")
         );
 
         if (!conge) {
@@ -178,7 +174,7 @@ export default function Calendrier(props) {
           );
         }
 
-        if (conge.duree === 'J')
+        if (conge.duree === "J")
           return (
             <CommonTableCellCalendrier
               colSpan={2}
@@ -193,24 +189,24 @@ export default function Calendrier(props) {
             <>
               <CommonTableCellCalendrier
                 type={
-                  conge.duree === 'AM'
-                    ? 'demiJourneeConge'
-                    : 'demiJourneeSansConge'
+                  conge.duree === "AM"
+                    ? "demiJourneeConge"
+                    : "demiJourneeSansConge"
                 }
                 duree="AM"
                 abr={conge?.abr}
-                children={conge.duree === 'AM' && conge.abr}
+                children={conge.duree === "AM" && conge.abr}
               />
 
               <CommonTableCellCalendrier
                 type={
-                  conge.duree === 'PM'
-                    ? 'demiJourneeConge'
-                    : 'demiJourneeSansConge'
+                  conge.duree === "PM"
+                    ? "demiJourneeConge"
+                    : "demiJourneeSansConge"
                 }
                 duree="PM"
                 abr={conge?.abr}
-                children={conge.duree === 'PM' && conge.abr}
+                children={conge.duree === "PM" && conge.abr}
               />
             </>
           );
@@ -219,13 +215,13 @@ export default function Calendrier(props) {
       result.push(
         // Numéro du jour
         <React.Fragment
-          key={'ligne' + index + 'i' + month.year() + month.month()}
+          key={"ligne" + index + "i" + month.year() + month.month()}
         >
           <CommonTableCellCalendrier
             type="date"
             children={
               isValidDate &&
-              myDate.format('DD') + ' ' + myDate.format('dd')[0].toUpperCase()
+              myDate.format("DD") + " " + myDate.format("dd")[0].toUpperCase()
             }
           />
 
@@ -237,7 +233,7 @@ export default function Calendrier(props) {
               ...(isValidDate
                 ? estVacances(myDate, zone)
                   ? StyleTableCell.maZone
-                  : estVacances(myDate, 'A') || estVacances(myDate, 'B')
+                  : estVacances(myDate, "A") || estVacances(myDate, "B")
                   ? StyleTableCell.autresZones
                   : StyleTableCell.vacances
                 : StyleTableCell.vacances),
@@ -255,7 +251,7 @@ export default function Calendrier(props) {
     for (let i = 0; i < 31; i++)
       newLigne = [
         ...newLigne,
-        <TableRow key={'ligne' + i}>{getLignes(i)}</TableRow>,
+        <TableRow key={"ligne" + i}>{getLignes(i)}</TableRow>,
       ];
 
     setLignes(newLigne);
@@ -281,7 +277,7 @@ export default function Calendrier(props) {
     //console.log(rangeFullYear.adjacent(oneRange));
 
     if (!rangeYear) result = rangeFullYear.adjacent(oneRange) && 1;
-    else result = Array.from(rangeYear.by('month')).length;
+    else result = Array.from(rangeYear.by("month")).length;
     //console.log(result);
 
     return result;
@@ -289,17 +285,20 @@ export default function Calendrier(props) {
 
   return (
     <div>
-      <Typography variant="h5" align="center">Congés</Typography><br/>
+      <Typography variant="h5" align="center">
+        Congés
+      </Typography>
+      <br />
       <Fab
         color="primary"
         size="small"
         sx={{
-          position: 'absolute',
+          position: "absolute",
           top: 5,
           left: 5,
         }}
         onClick={() => {
-          setDateDebut(dateDebut.clone().add(-1, 'months'));
+          setDateDebut(dateDebut.clone().add(-1, "months"));
         }}
       >
         <NavigateBeforeIcon />
@@ -308,27 +307,27 @@ export default function Calendrier(props) {
         color="primary"
         size="small"
         sx={{
-          position: 'absolute',
+          position: "absolute",
           top: 5,
           right: 5,
         }}
         onClick={() => {
-          setDateDebut(dateDebut.clone().add(1, 'months'));
+          setDateDebut(dateDebut.clone().add(1, "months"));
         }}
       >
         <NavigateNextIcon />
       </Fab>
-      <TableContainer component={Paper} style={{ width: 'fit-content' }}>
-        <Table style={{ borderCollapse: 'separate' }}>
+      <TableContainer component={Paper} style={{ width: "fit-content" }}>
+        <Table style={{ borderCollapse: "separate" }}>
           <TableBody>
             <TableRow>
               {Array.from(
                 moment
-                  .range(dateDebut, dateDebut.clone().add(nbMonths, 'months'))
-                  .snapTo('year')
-                  .by('year')
+                  .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
+                  .snapTo("year")
+                  .by("year")
               ).map((years) => (
-                <React.Fragment key={years.format('YYYY')}>
+                <React.Fragment key={years.format("YYYY")}>
                   <TableCell
                     sx={{ ...StyleTableCell.annee }}
                     colSpan={
@@ -336,14 +335,14 @@ export default function Calendrier(props) {
                       NbMonthByYear(
                         moment.range(
                           dateDebut,
-                          dateDebut.clone().add(nbMonths, 'months')
+                          dateDebut.clone().add(nbMonths, "months")
                         ),
                         years.year()
                       )
                     }
                     onClick={() => setOpenDialog(true)}
                   >
-                    {years.format('YYYY')}
+                    {years.format("YYYY")}
                   </TableCell>
                 </React.Fragment>
               ))}
@@ -351,12 +350,12 @@ export default function Calendrier(props) {
             <TableRow>
               {Array.from(
                 moment
-                  .range(dateDebut, dateDebut.clone().add(nbMonths, 'months'))
-                  .by('month')
+                  .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
+                  .by("month")
               ).map((month) => (
-                <React.Fragment key={month.format('YYYY-M')}>
+                <React.Fragment key={month.format("YYYY-M")}>
                   <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
-                    {month.locale('fr-FR').format('MMMM')}
+                    {month.locale("fr-FR").format("MMMM")}
                   </TableCell>
                 </React.Fragment>
               ))}
@@ -378,12 +377,12 @@ export default function Calendrier(props) {
       >
         {MenuOptions.map((option) => {
           var result;
-          if (option.menu === 'Divider') result = <Divider />;
+          if (option.menu === "Divider") result = <Divider />;
           else
             result = (
               <MenuItem
                 key={option.menu}
-                sx={{ fontSize: '0.8em', lineHeight: '1' }}
+                sx={{ fontSize: "0.8em", lineHeight: "1" }}
                 onClick={(event) =>
                   handleMenuItemClick(event, option.abr, option.type)
                 }

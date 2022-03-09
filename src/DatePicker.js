@@ -8,7 +8,7 @@ import 'moment/min/locales.min';
 
 moment.locale('fr-FR');
 
-export default function DatePicker(props) {
+export default function MyDatePicker(props) {
   const { name, label, value, onChange } = props;
 
   return (

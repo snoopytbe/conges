@@ -4,9 +4,9 @@ import Tooltip from '@mui/material/Tooltip';
 import { estFerie } from './joursFeries';
 import * as StyleTableCell from './styleTableCell';
 import { calculeSoldeCongesAtDate } from './conges';
-import moment from 'moment';
-import { extendMoment } from 'moment-range';
-moment = extendMoment(moment);
+import Moment from "moment";
+import { extendMoment } from "moment-range";
+const moment = extendMoment(Moment);
 
 function isFirstDayHighlighted(myDate, highlighted) {
   var result = false;

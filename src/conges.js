@@ -1,9 +1,9 @@
-import React from 'react';
-import { estFerie } from './joursFeries';
-import { putApiData, deleteApiData } from './ApiData';
-import moment from 'moment';
-import { extendMoment } from 'moment-range';
-moment = extendMoment(moment);
+import React from "react";
+import { estFerie } from "./joursFeries";
+import { putApiData, deleteApiData } from "./ApiData";
+import Moment from "moment";
+import { extendMoment } from "moment-range";
+const moment = extendMoment(Moment);
 
 function uuidv4() {
   return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
@@ -20,14 +20,14 @@ function estWE(jour) {
 
 export function calculeCapitalConges(anneeDebutPeriodeConges, abr) {
   var result;
-  if (abr === 'CA') result = 27;
+  if (abr === "CA") result = 27;
   else {
     var periodeConges = moment.range(
       moment([anneeDebutPeriodeConges, 4, 1]),
       moment([anneeDebutPeriodeConges + 1, 3, 30])
     );
     var nbJourOuvrables = 0;
-    Array.from(periodeConges.by('day')).forEach((oneDay) => {
+    Array.from(periodeConges.by("day")).forEach((oneDay) => {
       if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
     });
     result = nbJourOuvrables - 27 - 209;
@@ -53,8 +53,8 @@ export function compteCongesPeriode(abr, conges, dateDebut, dateFin) {
 
   conges.forEach((oneConge) => {
     if (
-      moment(oneConge.date, 'yyyy-MM-DD').isSameOrAfter(dateDebut) &&
-      moment(oneConge.date, 'yyyy-MM-DD').isSameOrBefore(dateFin) &&
+      moment(oneConge.date, "yyyy-MM-DD").isSameOrAfter(dateDebut) &&
+      moment(oneConge.date, "yyyy-MM-DD").isSameOrBefore(dateFin) &&
       oneConge.abr === abr
     ) {
       result += 1;
@@ -67,7 +67,7 @@ export function compteCongesAnnee(conges, anneeDebut) {
   var dateDebut = moment([anneeDebut, 4, 1]);
   var dateFin = moment([anneeDebut + 1, 3, 30]);
 
-  var result = { CA: '', RTT: '', FOR: '', MAL: '' };
+  var result = { CA: "", RTT: "", FOR: "", MAL: "" };
   Object.keys(result).forEach(
     (key) =>
       (result[key] = compteCongesPeriode(key, conges, dateDebut, dateFin))
@@ -80,7 +80,7 @@ export function handleNewConge(abreviation, type, conges, highlighted) {
   let newConges = [];
   // on va ajouter/modifier avec le PUT tous les jours "highlighted"
   //console.log(abreviation);
-  Array.from(highlighted.by('day')).forEach((oneHighlighted) => {
+  Array.from(highlighted.by("day")).forEach((oneHighlighted) => {
     // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
     let day = oneHighlighted.day();
 
@@ -88,25 +88,25 @@ export function handleNewConge(abreviation, type, conges, highlighted) {
       // On commence par chercher l'id et on le créé s'il n'existe pas
       let id =
         conges.filter((oneConge) =>
-          moment(oneConge.date).isSame(oneHighlighted, 'day')
+          moment(oneConge.date).isSame(oneHighlighted, "day")
         )?.[0]?.id ?? uuidv4();
 
       let duree =
-        type === 'temps'
+        type === "temps"
           ? abreviation
           : conges.filter((oneConge) =>
-              moment(oneConge.date).isSame(oneHighlighted, 'day')
-            )?.[0]?.duree ?? 'J';
+              moment(oneConge.date).isSame(oneHighlighted, "day")
+            )?.[0]?.duree ?? "J";
 
       let abr =
-        type === 'temps'
+        type === "temps"
           ? conges.filter((oneConge) =>
-              moment(oneConge.date).isSame(oneHighlighted, 'day')
+              moment(oneConge.date).isSame(oneHighlighted, "day")
             )?.[0]?.abr
           : abreviation;
 
       let data = {
-        date: oneHighlighted.format('yyyy-MM-DD'),
+        date: oneHighlighted.format("yyyy-MM-DD"),
         abr: abr,
         id: id,
         duree: duree,

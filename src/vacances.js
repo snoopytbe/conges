@@ -1,5 +1,5 @@
-import moment from 'moment';
-import { Ascension } from './joursFeries';
+import moment from "moment";
+import { Ascension } from "./joursFeries";
 
 export function nthDay(dt, day, number) {
   // Retourne le nième jour du mois par rapport à la date dt
@@ -8,9 +8,9 @@ export function nthDay(dt, day, number) {
   // number : numero du jour = nieme
   var firstDay = dt.clone().date(1).day(day);
   // Si firstDay est le mois précédent il faut décaler firstDay d'une semaine
-  if (firstDay.isBefore(dt.startOf('month'))) firstDay.add(7, 'days');
-  var result = firstDay.clone().add((number - 1) * 7, 'days');
-  if (result.isAfter(dt.endOf('month'))) result = moment.invalid();
+  if (firstDay.isBefore(dt.startOf("month"))) firstDay.add(7, "days");
+  var result = firstDay.clone().add((number - 1) * 7, "days");
+  if (result.isAfter(dt.endOf("month"))) result = moment.invalid();
   return result;
 }
 
@@ -18,9 +18,9 @@ function estToussaint(dt) {
   // Le 1/11 est dans la 2e semaine de vacances de la Toussaint
   var firstNov = moment([dt.year(), 10, 1]);
   var finVacances = firstNov.day() === 0 ? firstNov : firstNov.day(7);
-  var debutVacances = finVacances.clone().add(-15, 'days');
+  var debutVacances = finVacances.clone().add(-15, "days");
   return (
-    debutVacances.diff(dt, 'days') <= 0 && finVacances.diff(dt, 'days') >= 0
+    debutVacances.diff(dt, "days") <= 0 && finVacances.diff(dt, "days") >= 0
   );
 }
 
@@ -33,7 +33,7 @@ function debutVacancesNoel(annee) {
 
 function finVacancesNoel(annee) {
   var Noel = moment([annee, 11, 25]);
-  return debutVacancesNoel(annee).add(15 + (Noel.day() === 0 && 1), 'days');
+  return debutVacancesNoel(annee).add(15 + (Noel.day() === 0 && 1), "days");
 }
 
 function estNoel(dt) {
@@ -41,7 +41,7 @@ function estNoel(dt) {
   var debutVacances = debutVacancesNoel(dt.year());
   var finVacances = finVacancesNoel(dt.year() - 1);
   return (
-    debutVacances.diff(dt, 'days') <= 0 || finVacances.diff(dt, 'days') >= 0
+    debutVacances.diff(dt, "days") <= 0 || finVacances.diff(dt, "days") >= 0
   );
 }
 
@@ -50,13 +50,13 @@ function debutVacancesFevrier(annee, zone) {
   var Numero;
 
   switch (zone) {
-    case 'A':
+    case "A":
       Numero = ((annee - 2018) % 3) + 1;
       break;
-    case 'B':
+    case "B":
       Numero = ((((annee - 2018) % 3) + 2) % 3) + 1;
       break;
-    case 'C':
+    case "C":
       Numero = ((((annee - 2018) % 3) + 1) % 3) + 1;
       break;
     default:
@@ -67,14 +67,14 @@ function debutVacancesFevrier(annee, zone) {
 }
 
 function finVacancesFevrier(annee, zone) {
-  return debutVacancesFevrier(annee, zone).add(15, 'days');
+  return debutVacancesFevrier(annee, zone).add(15, "days");
 }
 
 function estFevrier(dt, zone) {
   var debutVacances = debutVacancesFevrier(dt.year(), zone);
   var finVacances = finVacancesFevrier(dt.year(), zone);
   return (
-    debutVacances.diff(dt, 'days') <= 0 && finVacances.diff(dt, 'days') >= 0
+    debutVacances.diff(dt, "days") <= 0 && finVacances.diff(dt, "days") >= 0
   );
 }
 
@@ -82,19 +82,19 @@ function debutVacancesPaques(annee, zone) {
   //Démarre 8 semaines après le début des vacances de février avant 2022 et 9 semaines à partir de 2022
   return debutVacancesFevrier(annee, zone).add(
     7 * 8 + (annee >= 2022 && 7),
-    'days'
+    "days"
   );
 }
 
 function finVacancesPaques(annee, zone) {
-  return debutVacancesPaques(annee, zone).add(15, 'days');
+  return debutVacancesPaques(annee, zone).add(15, "days");
 }
 
 function estPaques(dt, zone) {
   var debutVacances = debutVacancesPaques(dt.year(), zone);
   var finVacances = finVacancesPaques(dt.year(), zone);
   return (
-    debutVacances.diff(dt, 'days') <= 0 && finVacances.diff(dt, 'days') >= 0
+    debutVacances.diff(dt, "days") <= 0 && finVacances.diff(dt, "days") >= 0
   );
 }
 
@@ -102,7 +102,7 @@ function estAscencion(dt) {
   var debutVacances = Ascension(dt.year());
   var finVacances = Ascension(dt.year()).day(7);
   return (
-    debutVacances.diff(dt, 'days') <= 0 && finVacances.diff(dt, 'days') >= 0
+    debutVacances.diff(dt, "days") <= 0 && finVacances.diff(dt, "days") >= 0
   );
 }
 
@@ -113,7 +113,7 @@ function debutVacancesEte(annee) {
   var joursPossibles = [3, 5, 6];
   do {
     if (joursPossibles.includes(debutVacances.day())) break;
-    debutVacances.add(-1, 'days');
+    debutVacances.add(-1, "days");
   } while (debutVacances.month() === 6);
   return debutVacances;
 }
@@ -125,16 +125,16 @@ function finVacancesEte(annee) {
   var joursPossibles = [1, 2, 4];
   do {
     if (joursPossibles.includes(finVacances.day())) break;
-    finVacances.add(1, 'days');
+    finVacances.add(1, "days");
   } while (finVacances.month() === 8);
-  return finVacances.add(-1, 'days');
+  return finVacances.add(-1, "days");
 }
 
 function estEte(dt) {
   var debutVacances = debutVacancesEte(dt.year());
   var finVacances = finVacancesEte(dt.year());
   return (
-    debutVacances.diff(dt, 'days') <= 0 && finVacances.diff(dt, 'days') >= 0
+    debutVacances.diff(dt, "days") <= 0 && finVacances.diff(dt, "days") >= 0
   );
 }
 
