@@ -18,19 +18,34 @@ function estWE(jour) {
   return jour.day() === 6 || jour.day() === 0;
 }
 
-export function calculeCapitalConges(anneeDebut) {
-  var anneeCalcul = moment.range(
-    moment([anneeDebut, 4, 1]),
-    moment([anneeDebut + 1, 3, 30])
+export function calculeCapitalConges(anneeDebutPeriodeConges, abr) {
+  var result;
+  if (abr === 'CA') result = 27;
+  else {
+    var periodeConges = moment.range(
+      moment([anneeDebutPeriodeConges, 4, 1]),
+      moment([anneeDebutPeriodeConges + 1, 3, 30])
+    );
+    var nbJourOuvrables = 0;
+    Array.from(periodeConges.by('day')).forEach((oneDay) => {
+      if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
+    });
+    result = nbJourOuvrables - 27 - 209;
+  }
+  return result;
+}
+
+export function calculeSoldeCongesAtDate(date, abr, conges) {
+  var anneeDebutPeriodeConges =
+    date.month() <= 3 ? date.year() - 1 : date.year();
+  var result = calculeCapitalConges(anneeDebutPeriodeConges, abr);
+  result -= compteCongesPeriode(
+    abr,
+    conges,
+    moment([anneeDebutPeriodeConges, 4, 1]),
+    date
   );
-  var nbJourOuvrables = 0;
-  Array.from(anneeCalcul.by('day')).forEach((oneDay) => {
-    if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
-  });
-  return {
-    CA: 27,
-    RTT: nbJourOuvrables - 27 - 209,
-  };
+  return result;
 }
 
 export function compteCongesPeriode(abr, conges, dateDebut, dateFin) {
@@ -67,25 +82,27 @@ export function handleNewConge(abreviation, type, conges, highlighted) {
   //console.log(abreviation);
   Array.from(highlighted.by('day')).forEach((oneHighlighted) => {
     // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
-    let date = moment(oneHighlighted, 'yyyy-MM-DD');
-    let day = date.day();
+    let day = oneHighlighted.day();
 
-    if (!estFerie(date) && !(day === 0) && !(day === 6)) {
+    if (!estFerie(oneHighlighted) && !(day === 0) && !(day === 6)) {
       // On commence par chercher l'id et on le créé s'il n'existe pas
       let id =
-        conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-          ?.id ?? uuidv4();
+        conges.filter((oneConge) =>
+          moment(oneConge.date).isSame(oneHighlighted, 'day')
+        )?.[0]?.id ?? uuidv4();
 
       let duree =
         type === 'temps'
           ? abreviation
-          : conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-              ?.duree ?? 'J';
+          : conges.filter((oneConge) =>
+              moment(oneConge.date).isSame(oneHighlighted, 'day')
+            )?.[0]?.duree ?? 'J';
 
       let abr =
         type === 'temps'
-          ? conges.filter((oneConge) => oneConge.date === oneHighlighted)?.[0]
-              ?.abr
+          ? conges.filter((oneConge) =>
+              moment(oneConge.date).isSame(oneHighlighted, 'day')
+            )?.[0]?.abr
           : abreviation;
 
       let data = {
@@ -107,7 +124,7 @@ export function handleNewConge(abreviation, type, conges, highlighted) {
 
   //on complète avec les jours présents dans "conges" qui n'étaient pas highlighted
   conges?.forEach((oneConge) => {
-    if (!highlighted?.contains(moment(oneConge.date, 'YYYY-MM-DD')))
+    if (!highlighted?.contains(moment(oneConge.date)))
       newConges = [...newConges, oneConge];
   });
 

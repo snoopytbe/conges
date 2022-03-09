@@ -3,6 +3,7 @@ import TableCell from '@mui/material/TableCell';
 import Tooltip from '@mui/material/Tooltip';
 import { estFerie } from './joursFeries';
 import * as StyleTableCell from './styleTableCell';
+import { calculeSoldeCongesAtDate } from './conges';
 import moment from 'moment';
 import { extendMoment } from 'moment-range';
 moment = extendMoment(moment);
@@ -65,18 +66,12 @@ function styleHighlight(myDate, type, duree, highlighted) {
   return result;
 }
 
-function showTooltip(myDate, highlighted, duree,clicked) {
-  var result = false;
-  //console.log(duree)
-  if (duree === 'J' || duree === 'AM')
-    result = clicked && isFirstDayHighlighted(myDate, highlighted);
-  return result;
-}
-
 export default function TableCellCalendrier(params) {
   const {
     myDate,
     highlighted,
+    abr,
+    conges,
     onContextMenu,
     onClick,
     type,
@@ -85,6 +80,41 @@ export default function TableCellCalendrier(params) {
     children,
     ...others
   } = params;
+
+  function tooltipTitle() {
+    var result = '';
+    if (
+      (duree === 'J' || duree === 'AM') &&
+      clicked &&
+      isFirstDayHighlighted(myDate, highlighted)
+    ) {
+      result = 'Cliquez sur la date de fin';
+    } else if (abr === 'CA' || abr === 'RTT') {
+      result = 'Solde CA : ' + calculeSoldeCongesAtDate(myDate, 'CA', conges);
+      result +=
+        ', solde RTT : ' + calculeSoldeCongesAtDate(myDate, 'RTT', conges);
+    }
+    return result;
+  }
+
+  function couleurConge() {
+    var result = '';
+    switch (abr) {
+      case 'CA':
+        result = StyleTableCell.CA;
+        break;
+      case 'RTT':
+        result = StyleTableCell.RTT;
+        break;
+      case 'MAL':
+        result = StyleTableCell.MAL;
+        break;
+      default:
+        result = '';
+    }
+    console.log(abr + " T " +result)
+    return result;
+  }
 
   var styleToApply = StyleTableCell.base;
 
@@ -98,13 +128,17 @@ export default function TableCellCalendrier(params) {
           styleToApply = StyleTableCell.date;
           break;
         case 'journeeConge':
-          styleToApply = StyleTableCell.journeeConge;
+          styleToApply = {...StyleTableCell.journeeConge, ...couleurConge()} ;
+          console.log(styleToApply);
           break;
         case 'demiJourneeConge':
-          styleToApply = StyleTableCell.demiJourneeConge;
+          styleToApply = { ...StyleTableCell.demiJourneeConge, ...couleurConge() };
           break;
         case 'demiJourneeSansConge':
-          styleToApply = StyleTableCell.demiJourneeSansConge;
+          styleToApply = {
+            ...StyleTableCell.demiJourneeSansConge,
+            couleurConge,
+          };
           break;
         default:
           styleToApply = StyleTableCell.sansConge;
@@ -116,17 +150,21 @@ export default function TableCellCalendrier(params) {
     };
   }
 
-  return (
-    <Tooltip
-      title={
-        showTooltip(myDate, highlighted, duree, clicked)
-          ? 'Cliquez sur la date de fin'
-          : ''
-      }
-      open={true}
-      placement="right"
-      arrow
-    >
+  return (duree === 'J' || duree === 'AM') &&
+    clicked &&
+    isFirstDayHighlighted(myDate, highlighted) ? (
+    <Tooltip title={tooltipTitle()} placement="right" open={true} arrow>
+      <TableCell
+        {...others}
+        sx={{ ...styleToApply }}
+        onClick={(event) => onClick(event, myDate)}
+        onContextMenu={(event) => onContextMenu(event)}
+      >
+        {children}
+      </TableCell>
+    </Tooltip>
+  ) : (
+    <Tooltip title={tooltipTitle()} placement="right" arrow>
       <TableCell
         {...others}
         sx={{ ...styleToApply }}

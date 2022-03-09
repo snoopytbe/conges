@@ -16,8 +16,15 @@ import { estVacances } from './vacances';
 import { getApiData } from './ApiData';
 import * as StyleTableCell from './styleTableCell';
 import TableCellCalendrier from './TableCellCalendrier';
-import { handleNewConge, compteCongesAnnee } from './conges';
+import {
+  handleNewConge,
+  compteCongesAnnee,
+  calculeSoldeCongesAtDate,
+} from './conges';
 import DateRangeDialog from './DateRangeDialog';
+import Fab from '@mui/material/Fab';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 moment.locale('fr-FR');
 
@@ -42,8 +49,29 @@ export default function Calendrier(props) {
 
   const [openDialog, setOpenDialog] = React.useState(false);
 
+  const [nbMonths, setNbMonths] = React.useState(
+    Math.floor(window.innerWidth / 117)
+  );
+
   const [dateDebut, setDateDebut] = React.useState(moment([annee, 0, 1]));
-  const [dateFin, setDateFin] = React.useState(moment([annee, 11, 31]));
+  const [dateFin, setDateFin] = React.useState(moment([annee, 6, 1]));
+
+  React.useEffect(() => {
+    const handleWindowResize = () => {
+      var newNbMonths = Math.floor(window.innerWidth / 117);
+      var newDateFin = dateDebut
+        .clone()
+        .add(Math.max(newNbMonths ?? 6, 2), 'months');
+
+      setNbMonths(newNbMonths);
+      setDateFin(newDateFin);
+    };
+
+    handleWindowResize();
+
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, []);
 
   const zone = 'C';
 
@@ -110,7 +138,11 @@ export default function Calendrier(props) {
   function getLignes(index) {
     const result = [];
 
-    Array.from(moment.range(dateDebut, dateFin).by('month')).map((month) => {
+    Array.from(
+      moment
+        .range(dateDebut, dateDebut.clone().add(nbMonths, 'months'))
+        .by('month')
+    ).map((month) => {
       let myDate = moment([month.year(), month.month(), index + 1]);
 
       let isValidDate = myDate.isValid();
@@ -123,6 +155,7 @@ export default function Calendrier(props) {
             onContextMenu={onContextMenu}
             onClick={onClick}
             clicked={clicked}
+            conges={conges}
             {...params}
           />
         );
@@ -135,7 +168,12 @@ export default function Calendrier(props) {
 
         if (!conge) {
           return (
-            <CommonTableCellCalendrier colSpan={2} type="sansConge" duree="J" />
+            <CommonTableCellCalendrier
+              colSpan={2}
+              type="sansConge"
+              duree="J"
+              abr={conge?.abr}
+            />
           );
         }
 
@@ -145,6 +183,7 @@ export default function Calendrier(props) {
               colSpan={2}
               type="journeeConge"
               duree="J"
+              abr={conge?.abr}
               children={conge?.abr}
             />
           );
@@ -158,6 +197,7 @@ export default function Calendrier(props) {
                     : 'demiJourneeSansConge'
                 }
                 duree="AM"
+                abr={conge?.abr}
                 children={conge.duree === 'AM' && conge.abr}
               />
 
@@ -168,6 +208,7 @@ export default function Calendrier(props) {
                     : 'demiJourneeSansConge'
                 }
                 duree="PM"
+                abr={conge?.abr}
                 children={conge.duree === 'PM' && conge.abr}
               />
             </>
@@ -176,7 +217,9 @@ export default function Calendrier(props) {
 
       result.push(
         // Numéro du jour
-        <React.Fragment key={'ligne' + index + 'i' + month.month()}>
+        <React.Fragment
+          key={'ligne' + index + 'i' + month.year() + month.month()}
+        >
           <CommonTableCellCalendrier
             type="date"
             children={
@@ -215,41 +258,88 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
-  }, [clicked, conges, dateDebut, dateFin]);
+  }, [clicked, conges, dateDebut, nbMonths]);
 
   React.useEffect(() => {
     getApiData().then((data) => setConges(data));
   }, []);
 
   function NbMonthByYear(oneRange, year) {
+    //console.log('NbMonthByYear');
+    //console.log(JSON.stringify(oneRange));
+    //console.log(year);
     var rangeFullYear = moment.range(
       moment([year, 0, 1]),
       moment([year, 11, 31])
     );
+    //console.log(JSON.stringify(rangeFullYear));
+    var result = 0;
+
     var rangeYear = rangeFullYear.intersect(oneRange);
-    return Array.from(rangeYear.by('month')).length;
+    //console.log(JSON.stringify(rangeYear));
+    //console.log(rangeFullYear.adjacent(oneRange));
+
+    if (!rangeYear) result = rangeFullYear.adjacent(oneRange) && 1;
+    else result = Array.from(rangeYear.by('month')).length;
+    //console.log(result);
+
+    return result;
   }
 
   return (
     <div>
+      <Fab
+        color="primary"
+        size="small"
+        sx={{
+          position: 'absolute',
+          top: 5,
+          left: 5,
+        }}
+        onClick={() => {
+          setDateDebut(dateDebut.clone().add(-1, 'months'));
+        }}
+      >
+        <NavigateBeforeIcon />
+      </Fab>
+      <Fab
+        color="primary"
+        size="small"
+        sx={{
+          position: 'absolute',
+          top: 5,
+          right: 5,
+        }}
+        onClick={() => {
+          setDateDebut(dateDebut.clone().add(1, 'months'));
+        }}
+      >
+        <NavigateNextIcon />
+      </Fab>
       <TableContainer component={Paper} style={{ width: 'fit-content' }}>
         <Table style={{ borderCollapse: 'separate' }}>
           <TableBody>
             <TableRow>
               {Array.from(
-                moment.range(dateDebut, dateFin).snapTo('year').by('year')
+                moment
+                  .range(dateDebut, dateDebut.clone().add(nbMonths, 'months'))
+                  .snapTo('year')
+                  .by('year')
               ).map((years) => (
-                <React.Fragment key={years.format('Y')}>
+                <React.Fragment key={years.format('YYYY')}>
                   <TableCell
                     sx={{ ...StyleTableCell.annee }}
                     colSpan={
                       4 *
                       NbMonthByYear(
-                        moment.range(dateDebut, dateFin),
+                        moment.range(
+                          dateDebut,
+                          dateDebut.clone().add(nbMonths, 'months')
+                        ),
                         years.year()
                       )
                     }
-                    onClick={(event) => setOpenDialog(true)}
+                    onClick={() => setOpenDialog(true)}
                   >
                     {years.format('YYYY')}
                   </TableCell>
@@ -257,15 +347,17 @@ export default function Calendrier(props) {
               ))}
             </TableRow>
             <TableRow>
-              {Array.from(moment.range(dateDebut, dateFin).by('month')).map(
-                (month) => (
-                  <React.Fragment key={month.format('M')}>
-                    <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
-                      {month.locale('fr-FR').format('MMMM')}
-                    </TableCell>
-                  </React.Fragment>
-                )
-              )}
+              {Array.from(
+                moment
+                  .range(dateDebut, dateDebut.clone().add(nbMonths, 'months'))
+                  .by('month')
+              ).map((month) => (
+                <React.Fragment key={month.format('YYYY-M')}>
+                  <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
+                    {month.locale('fr-FR').format('MMMM')}
+                  </TableCell>
+                </React.Fragment>
+              ))}
             </TableRow>
             {lignes}
           </TableBody>
@@ -302,16 +394,20 @@ export default function Calendrier(props) {
       {openDialog && (
         <DateRangeDialog
           dateDebut={dateDebut}
-          onChangeDebut={(value) => setDateDebut(value)}
-          dateFin={dateFin}
-          onChangeFin={(value) => setDateFin(value)}
-          handleClose={() => setOpenDialog(false)}
+          handleClose={(result, dateMin) => {
+            setOpenDialog(false);
+            if (result) {
+              setDateDebut(dateMin);
+            }
+          }}
         />
       )}
       <p>
         Sur {dateDebut.year() - 1}-{dateDebut.year()}, il reste :
       </p>
       <p>{JSON.stringify(compteCongesAnnee(conges, dateDebut.year() - 1))}</p>
+      <p>{calculeSoldeCongesAtDate(moment([2022, 3, 1]), 'CA', conges)}</p>
+      <p></p>
     </div>
   );
 }

@@ -67,7 +67,7 @@ export const sansConge = {
 }
 
 export const journeeConge = {
-  ...sansConge,backgroundColor: couleurConges,
+  ...sansConge,
 };
 
 export const demiJourneeSansConge = {
@@ -76,8 +76,19 @@ export const demiJourneeSansConge = {
 
 export const demiJourneeConge = {
   ...demiJourneeSansConge,
-  backgroundColor: couleurConges,
 };
+
+export const CA = {
+  backgroundColor: '#993366',
+  color: white,
+}
+
+export const RTT = {
+  backgroundColor: '#cc99ff'
+}
+
+export const MAL = {
+  backgroundColor: '#eff705'}
 
 export const vacances = {
   ...base,
