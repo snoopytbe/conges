@@ -1,8 +1,8 @@
 // Inspiré de github.com/martinjw/Holiday
+import moment from "moment";
+import { memoize } from "./memoize";
 
-import moment from 'moment';
-
-export function Paques(year) {
+const Paques = (year) => {
   //Oudin's Algorithm
   var g = year % 19;
   var c = Math.floor(year / 100);
@@ -15,8 +15,8 @@ export function Paques(year) {
   var i = h - k * (1 - k * p * q);
   var j = (Math.floor(year / 4) + year + i + 2 - d) % 7;
 
-  return moment([year, 2, 1]).add(27 + i - j, 'days');
-}
+  return moment([year, 2, 1]).add(27 + i - j, "days");
+};
 
 export function NouvelAn(year) {
   return moment([year, 0, 1]);
@@ -24,7 +24,7 @@ export function NouvelAn(year) {
 
 export function LundiDePaques(year) {
   var paq = Paques(year);
-  return paq.add(1, 'days');
+  return paq.add(1, "days");
 }
 
 export function PremierMai(year) {
@@ -37,12 +37,12 @@ export function HuitMai(year) {
 
 export function Ascension(year) {
   var paq = Paques(year);
-  return paq.add(4 + 7 * 5, 'days');
+  return paq.add(4 + 7 * 5, "days");
 }
 
 export function LundiDePentecote(year) {
   var paq = Paques(year);
-  return paq.add(1 + 7 * 7, 'days');
+  return paq.add(1 + 7 * 7, "days");
 }
 
 export function FeteNationale(year) {
@@ -73,7 +73,7 @@ function AreDateEquals(date1, date2) {
   );
 }
 
-export function estFerie(myDate) {
+export const estFerie = memoize((myDate) => {
   var year = myDate.year();
 
   return (
@@ -90,4 +90,4 @@ export function estFerie(myDate) {
     AreDateEquals(Armistice(year), myDate) ||
     AreDateEquals(Noel(year), myDate)
   );
-}
+});

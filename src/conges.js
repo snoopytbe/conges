@@ -1,6 +1,7 @@
 import React from "react";
 import { estFerie } from "./joursFeries";
 import { putApiData, deleteApiData } from "./ApiData";
+import { memoize } from "./memoize";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
 const moment = extendMoment(Moment);
@@ -18,8 +19,9 @@ function estWE(jour) {
   return jour.day() === 6 || jour.day() === 0;
 }
 
-export function calculeCapitalConges(anneeDebutPeriodeConges, abr) {
+export const calculeCapitalConges = memoize((anneeDebutPeriodeConges, abr) => {
   var result;
+  var t0 = Date.now();
   if (abr === "CA") result = 27;
   else {
     var periodeConges = moment.range(
@@ -32,10 +34,12 @@ export function calculeCapitalConges(anneeDebutPeriodeConges, abr) {
     });
     result = nbJourOuvrables - 27 - 209;
   }
+  //console.log(`calculeCapitalConges: ${Date.now() - t0}`);
   return result;
-}
+});
 
-export function calculeSoldeCongesAtDate(date, abr, conges) {
+export const calculeSoldeCongesAtDate = memoize((date, abr, conges) => {
+  var t0 = Date.now();
   var anneeDebutPeriodeConges =
     date.month() <= 3 ? date.year() - 1 : date.year();
   var result = calculeCapitalConges(anneeDebutPeriodeConges, abr);
@@ -45,34 +49,38 @@ export function calculeSoldeCongesAtDate(date, abr, conges) {
     moment([anneeDebutPeriodeConges, 4, 1]),
     date
   );
+  //console.log(`calculeSoldeCongesAtDate: ${Date.now() - t0}`);
   return result;
-}
+});
 
-export function compteCongesPeriode(abr, conges, dateDebut, dateFin) {
-  var result = 0;
+export const compteCongesPeriode = memoize(
+  (abr, conges, dateDebut, dateFin) => {
+    var result = 0;
 
-  conges.forEach((oneConge) => {
-    if (
-      moment(oneConge.date, "yyyy-MM-DD").isSameOrAfter(dateDebut) &&
-      moment(oneConge.date, "yyyy-MM-DD").isSameOrBefore(dateFin) &&
-      oneConge.abr === abr
-    ) {
-      result += 1;
-    }
-  });
-  return result;
-}
+    conges.forEach((oneConge) => {
+      if (
+        moment(oneConge.date, "yyyy-MM-DD").isSameOrAfter(dateDebut) &&
+        moment(oneConge.date, "yyyy-MM-DD").isSameOrBefore(dateFin) &&
+        oneConge.abr === abr
+      ) {
+        result += 1;
+      }
+    });
+    return result;
+  }
+);
 
 export function compteCongesAnnee(conges, anneeDebut) {
+  var t0 = Date.now();
   var dateDebut = moment([anneeDebut, 4, 1]);
   var dateFin = moment([anneeDebut + 1, 3, 30]);
 
-  var result = { CA: "", RTT: "", FOR: "", MAL: "" };
+  var result = { CA: "", RTT: "", CET: "", FOR: "", MAL: "" };
   Object.keys(result).forEach(
     (key) =>
       (result[key] = compteCongesPeriode(key, conges, dateDebut, dateFin))
   );
-
+  console.log(`compteCongesAnnee: ${Date.now() - t0}`);
   return result;
 }
 

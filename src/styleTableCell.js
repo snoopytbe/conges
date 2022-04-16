@@ -41,6 +41,12 @@ export const date = {
   borderColor: white,
 };
 
+export const dateToday = {
+  ...date,
+  color: "red",
+  fontWeight: "bold",
+};
+
 export const WE = {
   ...date,
   backgroundColor: couleurDimanche,
@@ -56,11 +62,11 @@ export const ferie = {
 const colonneConges = {
   ...base,
   color: black,
+  width: "61px",
 };
 
 export const sansConge = {
   ...colonneConges,
-  width: "60px",
 };
 
 export const journeeConge = {
@@ -69,6 +75,9 @@ export const journeeConge = {
 
 export const demiJourneeSansConge = {
   ...colonneConges,
+  width: "31px",
+  paddingLeft: "2px",
+  paddingRight: "2px",
 };
 
 export const demiJourneeConge = {
@@ -82,6 +91,11 @@ export const CA = {
 
 export const RTT = {
   backgroundColor: "#cc99ff",
+};
+
+export const CET = {
+  backgroundColor: "#942192",
+  color: white,
 };
 
 export const MAL = {

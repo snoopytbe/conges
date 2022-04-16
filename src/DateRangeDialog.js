@@ -24,7 +24,7 @@ export default function DateRangeDialog(params) {
           <DialogContentText>
             <br />
           </DialogContentText>
-          <DatePicker
+          <MyDatePicker
             label="Mois de départ"
             name="debut"
             value={dateMin}

@@ -48,16 +48,19 @@ function estNoel(dt) {
 function debutVacancesFevrier(annee, zone) {
   // Démarre 5 semaines après la fin des vacances de Noël pour la première zone
   var Numero;
+  var anneeCalcul = annee;
+
+  if (annee >= 2023) anneeCalcul -= 1;
 
   switch (zone) {
     case "A":
-      Numero = ((annee - 2018) % 3) + 1;
+      Numero = ((anneeCalcul - 2018) % 3) + 1;
       break;
     case "B":
-      Numero = ((((annee - 2018) % 3) + 2) % 3) + 1;
+      Numero = ((((anneeCalcul - 2018) % 3) + 2) % 3) + 1;
       break;
     case "C":
-      Numero = ((((annee - 2018) % 3) + 1) % 3) + 1;
+      Numero = ((((anneeCalcul - 2018) % 3) + 1) % 3) + 1;
       break;
     default:
       Numero = 0;

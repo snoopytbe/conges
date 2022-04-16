@@ -46,22 +46,18 @@ export default function Calendrier(props) {
 
   const [openDialog, setOpenDialog] = React.useState(false);
 
-  const [nbMonths, setNbMonths] = React.useState(
-    Math.floor(window.innerWidth / 117)
-  );
+  const [nbMonths, setNbMonths] = React.useState(calculNbMonths());
+
+  function calculNbMonths() {
+    return Math.floor(window.innerWidth / 117);
+  }
 
   const [dateDebut, setDateDebut] = React.useState(moment([annee, 0, 1]));
-  const [dateFin, setDateFin] = React.useState(moment([annee, 6, 1]));
 
   React.useEffect(() => {
     const handleWindowResize = () => {
-      var newNbMonths = Math.floor(window.innerWidth / 117);
-      var newDateFin = dateDebut
-        .clone()
-        .add(Math.max(newNbMonths ?? 6, 2), "months");
-
+      var newNbMonths = calculNbMonths();
       setNbMonths(newNbMonths);
-      setDateFin(newDateFin);
     };
 
     handleWindowResize();
@@ -75,6 +71,7 @@ export default function Calendrier(props) {
   const MenuOptions = [
     { menu: "Congés", abr: "CA", type: "conge" },
     { menu: "RTT", abr: "RTT", type: "conge" },
+    { menu: "CET", abr: "CET", type: "conge" },
     { menu: "Formation", abr: "FOR", type: "conge" },
     { menu: "Maladie", abr: "MAL", type: "conge" },
     { menu: "Présent", abr: "", type: "conge" },
@@ -89,30 +86,31 @@ export default function Calendrier(props) {
     setActiveMenu(false);
   };
 
-  const onClick = React.useCallback(
-    (event, myDate) => {
-      event.preventDefault();
+  var t0 = Date.now();
 
-      if (!clicked) {
-        setStartDateHighlight(myDate);
-        setHighlighted(moment.range(myDate, myDate));
-      } else {
-        setHighlighted(
-          moment.range(
-            moment.min(startDateHighlight, myDate),
-            moment.max(startDateHighlight, myDate)
-          )
-        );
-        setMousePos({
-          mouseX: event.clientX - 2,
-          mouseY: event.clientY - 4,
-        });
-        setActiveMenu(true);
-      }
-      setClicked(!clicked);
-    },
-    [clicked]
-  );
+  const onClick = (event, myDate) => {
+    event.preventDefault();
+    t0 = Date.now();
+
+    if (!clicked) {
+      setStartDateHighlight(myDate);
+      setHighlighted(moment.range(myDate, myDate));
+    } else {
+      setHighlighted(
+        moment.range(
+          moment.min(startDateHighlight, myDate),
+          moment.max(startDateHighlight, myDate)
+        )
+      );
+      setMousePos({
+        mouseX: event.clientX - 2,
+        mouseY: event.clientY - 4,
+      });
+      setActiveMenu(true);
+    }
+    setClicked(!clicked);
+    //console.log(`onClick : ${Date.now() - t0}`);
+  };
 
   function onContextMenu(event) {
     event.preventDefault();
@@ -133,6 +131,7 @@ export default function Calendrier(props) {
   };
 
   function getLignes(index) {
+    //console.log(`getLignes Begin : ${Date.now() - t0}`);
     const result = [];
 
     Array.from(
@@ -242,10 +241,12 @@ export default function Calendrier(props) {
         </React.Fragment>
       );
     });
+    //console.log(`getLignes End : ${Date.now() - t0}`);
     return result;
   }
 
   React.useEffect(() => {
+    //console.log(`useEffect Begin : ${Date.now() - t0}`);
     let newLigne = [];
 
     for (let i = 0; i < 31; i++)
@@ -255,6 +256,7 @@ export default function Calendrier(props) {
       ];
 
     setLignes(newLigne);
+    //console.log(`useEffect End : ${Date.now() - t0}`);
   }, [clicked, conges, dateDebut, nbMonths]);
 
   React.useEffect(() => {
@@ -377,7 +379,7 @@ export default function Calendrier(props) {
       >
         {MenuOptions.map((option) => {
           var result;
-          if (option.menu === "Divider") result = <Divider />;
+          if (option.menu === "Divider") result = <Divider key={1} />;
           else
             result = (
               <MenuItem
