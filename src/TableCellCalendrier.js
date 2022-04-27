@@ -1,187 +1,135 @@
-import React, { memo } from "react";
+import React from "react";
 import TableCell from "@mui/material/TableCell";
 import Tooltip from "@mui/material/Tooltip";
 import { estFerie } from "./joursFeries";
 import * as StyleTableCell from "./styleTableCell";
-import { calculeSoldeCongesAtDate } from "./conges";
-import Moment from "moment";
-import { extendMoment } from "moment-range";
-import { memoize } from "./memoize";
-const moment = extendMoment(Moment);
 
-const isFirstDayHighlighted = memoize((myDate, highlighted) => {
-  var result = false;
-  if (highlighted?.contains(myDate))
-    result = !highlighted?.contains(myDate.clone().add(-1, "day"));
-  return result;
-});
-
-const isLastDayHighlighted = memoize((myDate, highlighted) => {
-  return !highlighted?.contains(myDate.clone().add(1, "day"));
-});
-
-function styleHighlight(myDate, type, duree, highlighted) {
-  var result = "";
-
-  if (highlighted?.contains(myDate)) {
-    // On regarde si le lendemain est aussi highlighted et fait partie du même mois
-    var tomorrowHighlighted =
-      !isLastDayHighlighted(myDate, highlighted) &&
-      myDate.clone().add(1, "day").month === myDate.month;
-
-    if (!tomorrowHighlighted) result = StyleTableCell.highlightedBottom;
-
-    // On regarde si la veille est aussi highlighted et fait partie du même mois
-    var yesterdayHighlighted =
-      !isFirstDayHighlighted(myDate, highlighted) &&
-      myDate.clone().add(-1, "day").month === myDate.month;
-
-    if (!yesterdayHighlighted)
-      result = { ...result, ...StyleTableCell.highlightedTop };
-
-    switch (type) {
-      case "date":
-        result = { ...result, ...StyleTableCell.highlightedLeft };
-        break;
-      case "sansConge":
-      case "journeeConge":
-        result = { ...result, ...StyleTableCell.highlightedRight };
-        break;
-      case "demiJourneeConge":
-      case "demiJourneeSansConge":
-        if (duree === "PM")
-          result = { ...result, ...StyleTableCell.highlightedRight };
-        else result = { ...result, ...StyleTableCell.highlighted };
-        break;
-      default:
-        result = { ...result, ...StyleTableCell.highlighted };
-    }
-
-    if (
-      isFirstDayHighlighted(myDate, highlighted) ||
-      isLastDayHighlighted(myDate, highlighted)
-    ) {
-      result = { ...result, ...StyleTableCell.highlightedFirstLast };
-    }
-  }
-  return result;
+function areEqual(prevProps, nextProps) {
+  return (
+    prevProps.myDate?.format("DDMMYY") === nextProps.myDate?.format("DDMMYY") &&
+    prevProps.conge?.duree === nextProps.conge?.duree &&
+    prevProps.conge?.abr === nextProps.conge?.abr &&
+    prevProps.colSpan === nextProps.colSpan &&
+    prevProps.demiJournee === nextProps.demiJournee &&
+    prevProps.typeHighlight === nextProps.typeHighlight &&
+    prevProps.tooltipTitle === nextProps.tooltipTitle
+  );
 }
 
-export default function TableCellCalendrier(params) {
+function CellCalendrier(params) {
   const {
     myDate,
-    highlighted,
-    abr,
-    conges,
+    conge,
+    type,
+    colSpan,
     onContextMenu,
     onClick,
-    type,
-    duree,
-    clicked,
-    children,
-    ...others
+    demiJournee,
+    typeHighlight,
+    tooltipTitle,
   } = params;
 
-  function tooltipTitle() {
-    var result = "";
+  //console.log("CellCalendrier " + JSON.stringify(myDate));
 
-    if (
-      (duree === "J" || duree === "AM") &&
-      clicked &&
-      isFirstDayHighlighted(myDate, highlighted)
-    ) {
-      result = "Cliquez sur la date de fin";
-    } else if (abr === "CA" || abr === "RTT") {
-      result = "Solde CA : " + calculeSoldeCongesAtDate(myDate, "CA", conges);
-      result +=
-        ", solde RTT : " + calculeSoldeCongesAtDate(myDate, "RTT", conges);
-    }
-    return result;
+  var abr = conge?.abr;
+  var value = conge?.duree === demiJournee ? conge?.abr : "";
+  var localType = type;
+
+  if (myDate.isValid()) {
+    if (myDate.day() === 0 || myDate.day() === 6) localType = "WE";
+    if (estFerie(myDate)) localType = "ferie";
   }
 
-  function couleurConge() {
-    var result = "";
-    switch (abr) {
-      case "CA":
-        result = StyleTableCell.CA;
-        break;
-      case "RTT":
-        result = StyleTableCell.RTT;
-        break;
-      case "CET":
-        result = StyleTableCell.CET;
-        break;
-      case "MAL":
-        result = StyleTableCell.MAL;
-        break;
-      default:
-        result = "";
-    }
-    //console.log(abr + " T " +result)
-    return result;
-  }
+  var couleurConge = StyleTableCell[abr] ?? "";
 
-  var styleToApply = StyleTableCell.base;
+  var styleToApply = myDate.isValid()
+    ? StyleTableCell[localType]
+    : StyleTableCell.base;
 
-  if (myDate?.isValid) {
-    if (estFerie(myDate)) styleToApply = StyleTableCell.ferie;
-    else if (myDate.day() === 0 || myDate.day() === 6)
-      styleToApply = StyleTableCell.WE;
-    else {
-      switch (type) {
-        case "date":
-          styleToApply = myDate.isSame(moment(), "day")
-            ? StyleTableCell.dateToday
-            : StyleTableCell.date;
-          break;
-        case "journeeConge":
-          styleToApply = { ...StyleTableCell.journeeConge, ...couleurConge() };
-          break;
-        case "demiJourneeConge":
-          styleToApply = {
-            ...StyleTableCell.demiJourneeConge,
-            ...couleurConge(),
-          };
-          break;
-        case "demiJourneeSansConge":
-          styleToApply = {
-            ...StyleTableCell.demiJourneeSansConge,
-            couleurConge,
-          };
-          break;
-        default:
-          styleToApply = StyleTableCell.sansConge;
-      }
-    }
+  if (localType === "journeeConge" || localType === "demiJourneeConge")
     styleToApply = {
       ...styleToApply,
-      ...styleHighlight(myDate, type, duree, highlighted),
+      ...couleurConge,
     };
+
+  var styleHighlight;
+  if (typeHighlight !== "")
+    styleHighlight = conge?.duree !== "AM" && StyleTableCell.highlightedRight;
+
+  switch (typeHighlight) {
+    case "first":
+      styleHighlight = {
+        ...styleHighlight,
+        ...StyleTableCell.highlightedTop,
+      };
+      break;
+    case "last":
+      styleHighlight = {
+        ...styleHighlight,
+        ...StyleTableCell.highlightedBottom,
+      };
+      break;
+    case "solo":
+      styleHighlight = {
+        ...styleHighlight,
+        ...StyleTableCell.highlightedTop,
+        ...StyleTableCell.highlightedBottom,
+      };
+      break;
+    default:
   }
 
-  return (duree === "J" || duree === "AM") &&
-    clicked &&
-    isFirstDayHighlighted(myDate, highlighted) ? (
-    <Tooltip title={tooltipTitle()} placement="right" open={true} arrow>
+  styleToApply = { ...styleToApply, ...styleHighlight };
+
+  return (
+    <Tooltip title={tooltipTitle} placement="right" arrow>
       <TableCell
-        {...others}
+        colSpan={colSpan}
         sx={{ ...styleToApply }}
-        onMouseDown={(event) => onClick(event, myDate)}
+        onClick={(event) => onClick(event, myDate)}
         onContextMenu={(event) => onContextMenu(event)}
       >
-        {children}
-      </TableCell>
-    </Tooltip>
-  ) : (
-    <Tooltip title={tooltipTitle()} placement="right" arrow>
-      <TableCell
-        {...others}
-        sx={{ ...styleToApply }}
-        onMouseDown={(event) => onClick(event, myDate)}
-        onContextMenu={(event) => onContextMenu(event)}
-      >
-        {children}
+        {value}
       </TableCell>
     </Tooltip>
   );
 }
+
+function TableCellCalendrierForMemo(params) {
+  const { conge, ...others } = params;
+
+  if (!conge || conge?.duree === "J")
+    return (
+      <CellCalendrier
+        {...params}
+        colSpan={2}
+        type={conge ? "journeeConge" : "sansConge"}
+        demiJournee="J"
+      />
+    );
+  else
+    return (
+      <>
+        <CellCalendrier
+          {...params}
+          type={
+            conge.duree === "AM" ? "demiJourneeConge" : "demiJourneeSansConge"
+          }
+          demiJournee="AM"
+        />
+
+        <CellCalendrier
+          {...params}
+          type={
+            conge.duree === "PM" ? "demiJourneeConge" : "demiJourneeSansConge"
+          }
+          demiJournee="PM"
+        />
+      </>
+    );
+}
+
+export const TableCellCalendrier = React.memo(
+  TableCellCalendrierForMemo,
+  areEqual
+);

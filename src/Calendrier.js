@@ -13,16 +13,17 @@ import Moment from "moment";
 import { extendMoment } from "moment-range";
 const moment = extendMoment(Moment);
 import "moment/min/locales.min";
-import { estVacances } from "./vacances";
 import { getApiData } from "./ApiData";
 import * as StyleTableCell from "./styleTableCell";
-import TableCellCalendrier from "./TableCellCalendrier";
+import { TableCellVacances } from "./TableCellVacances";
 import { handleNewConge } from "./conges";
 import DateRangeDialog from "./DateRangeDialog";
 import Fab from "@mui/material/Fab";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-
+import { TableCellCalendrier } from "./TableCellCalendrier";
+import { TableCellDate } from "./TableCellDate";
+import { calculeSoldeCongesAtDate } from "./conges";
 moment.locale("fr-FR");
 
 export default function Calendrier(props) {
@@ -34,15 +35,9 @@ export default function Calendrier(props) {
   });
   const [activeMenu, setActiveMenu] = React.useState(false);
 
-  const [lignes, setLignes] = React.useState([]);
-
   const [highlighted, setHighlighted] = React.useState(null);
 
   const [conges, setConges] = React.useState([]);
-
-  const [clicked, setClicked] = React.useState(false);
-
-  const [startDateHighlight, setStartDateHighlight] = React.useState(null);
 
   const [openDialog, setOpenDialog] = React.useState(false);
 
@@ -86,40 +81,44 @@ export default function Calendrier(props) {
     setActiveMenu(false);
   };
 
-  var t0 = Date.now();
+  var clicked = false;
+  var startDateHighlight = null;
 
-  const onClick = (event, myDate) => {
-    event.preventDefault();
-    t0 = Date.now();
+  const onClick = React.useCallback(
+    (event, myDate) => {
+      event.preventDefault();
 
-    if (!clicked) {
-      setStartDateHighlight(myDate);
-      setHighlighted(moment.range(myDate, myDate));
-    } else {
-      setHighlighted(
-        moment.range(
-          moment.min(startDateHighlight, myDate),
-          moment.max(startDateHighlight, myDate)
-        )
-      );
-      setMousePos({
-        mouseX: event.clientX - 2,
-        mouseY: event.clientY - 4,
-      });
-      setActiveMenu(true);
-    }
-    setClicked(!clicked);
-    //console.log(`onClick : ${Date.now() - t0}`);
-  };
+      if (!clicked) {
+        //setStartDateHighlight(myDate);
+        startDateHighlight = myDate;
+        setHighlighted(moment.range(myDate, myDate));
+      } else {
+        setHighlighted(
+          moment.range(
+            moment.min(startDateHighlight, myDate),
+            moment.max(startDateHighlight, myDate)
+          )
+        );
+        setMousePos({
+          mouseX: event.clientX - 2,
+          mouseY: event.clientY - 4,
+        });
+        setActiveMenu(true);
+      }
+      console.log("ok");
+      clicked = !clicked;
+    },
+    [clicked, startDateHighlight]
+  );
 
-  function onContextMenu(event) {
+  const onContextMenu = React.useCallback((event) => {
     event.preventDefault();
     setMousePos({
       mouseX: event.clientX - 2,
       mouseY: event.clientY - 4,
     });
     setActiveMenu(true);
-  }
+  }, []);
 
   const handleMenuItemClick = (event, abr, type) => {
     event.preventDefault();
@@ -130,153 +129,39 @@ export default function Calendrier(props) {
     setHighlighted(null);
   };
 
-  function getLignes(index) {
-    //console.log(`getLignes Begin : ${Date.now() - t0}`);
-    const result = [];
+  const typeHighlight = (myDate, highlighted) => {
+    var result = "";
+    if (highlighted?.contains(myDate)) {
+      result = "middle";
 
-    Array.from(
-      moment
-        .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
-        .by("month")
-    ).map((month) => {
-      let myDate = moment([month.year(), month.month(), index + 1]);
-
-      let isValidDate = myDate.isValid();
-
-      function CommonTableCellCalendrier(params) {
-        return (
-          <TableCellCalendrier
-            myDate={myDate}
-            highlighted={highlighted}
-            onContextMenu={onContextMenu}
-            onClick={onClick}
-            clicked={clicked}
-            conges={conges}
-            {...params}
-          />
-        );
-      }
-
-      function tableCellConge() {
-        let conge = conges?.find(
-          (item) => item.date === myDate.format("YYYY-MM-DD")
-        );
-
-        if (!conge) {
-          return (
-            <CommonTableCellCalendrier
-              colSpan={2}
-              type="sansConge"
-              duree="J"
-              abr={conge?.abr}
-            />
-          );
-        }
-
-        if (conge.duree === "J")
-          return (
-            <CommonTableCellCalendrier
-              colSpan={2}
-              type="journeeConge"
-              duree="J"
-              abr={conge?.abr}
-              children={conge?.abr}
-            />
-          );
-        else
-          return (
-            <>
-              <CommonTableCellCalendrier
-                type={
-                  conge.duree === "AM"
-                    ? "demiJourneeConge"
-                    : "demiJourneeSansConge"
-                }
-                duree="AM"
-                abr={conge?.abr}
-                children={conge.duree === "AM" && conge.abr}
-              />
-
-              <CommonTableCellCalendrier
-                type={
-                  conge.duree === "PM"
-                    ? "demiJourneeConge"
-                    : "demiJourneeSansConge"
-                }
-                duree="PM"
-                abr={conge?.abr}
-                children={conge.duree === "PM" && conge.abr}
-              />
-            </>
-          );
-      }
-
-      result.push(
-        // Numéro du jour
-        <React.Fragment
-          key={"ligne" + index + "i" + month.year() + month.month()}
-        >
-          <CommonTableCellCalendrier
-            type="date"
-            children={
-              isValidDate &&
-              myDate.format("DD") + " " + myDate.format("dd")[0].toUpperCase()
-            }
-          />
-
-          {tableCellConge()}
-
-          {/* Vacances scolaires */}
-          <TableCell
-            sx={{
-              ...(isValidDate
-                ? estVacances(myDate, zone)
-                  ? StyleTableCell.maZone
-                  : estVacances(myDate, "A") || estVacances(myDate, "B")
-                  ? StyleTableCell.autresZones
-                  : StyleTableCell.vacances
-                : StyleTableCell.vacances),
-            }}
-          />
-        </React.Fragment>
+      var isFirstDayHighlighted = !highlighted.contains(
+        myDate.clone().add(-1, "day")
       );
-    });
-    //console.log(`getLignes End : ${Date.now() - t0}`);
+      if (isFirstDayHighlighted) result = "first";
+
+      var isLastDayHighlighted = !highlighted.contains(
+        myDate.clone().add(1, "day")
+      );
+      if (isLastDayHighlighted) result = "last";
+
+      if (isFirstDayHighlighted && isLastDayHighlighted) result = "solo";
+    }
     return result;
-  }
-
-  React.useEffect(() => {
-    //console.log(`useEffect Begin : ${Date.now() - t0}`);
-    let newLigne = [];
-
-    for (let i = 0; i < 31; i++)
-      newLigne = [
-        ...newLigne,
-        <TableRow key={"ligne" + i}>{getLignes(i)}</TableRow>,
-      ];
-
-    setLignes(newLigne);
-    //console.log(`useEffect End : ${Date.now() - t0}`);
-  }, [clicked, conges, dateDebut, nbMonths]);
+  };
 
   React.useEffect(() => {
     getApiData().then((data) => setConges(data));
   }, []);
 
   function NbMonthByYear(oneRange, year) {
-    //console.log('NbMonthByYear');
-    //console.log(JSON.stringify(oneRange));
-    //console.log(year);
     var rangeFullYear = moment.range(
       moment([year, 0, 1]),
       moment([year, 11, 31])
     );
-    //console.log(JSON.stringify(rangeFullYear));
+
     var result = 0;
 
     var rangeYear = rangeFullYear.intersect(oneRange);
-    //console.log(JSON.stringify(rangeYear));
-    //console.log(rangeFullYear.adjacent(oneRange));
 
     if (!rangeYear) result = rangeFullYear.adjacent(oneRange) && 1;
     else result = Array.from(rangeYear.by("month")).length;
@@ -284,6 +169,21 @@ export default function Calendrier(props) {
 
     return result;
   }
+
+  const tooltipTitle = (myDate, conges) => {
+    var result = "";
+
+    var conge = conges?.find(
+      (item) => item.date === myDate.format("YYYY-MM-DD")
+    );
+
+    if (conge?.abr === "CA" || conge?.abr === "RTT") {
+      result = "Solde CA : " + calculeSoldeCongesAtDate(myDate, "CA", conges);
+      result +=
+        ", solde RTT : " + calculeSoldeCongesAtDate(myDate, "RTT", conges);
+    }
+    return result;
+  };
 
   return (
     <div>
@@ -362,7 +262,44 @@ export default function Calendrier(props) {
                 </React.Fragment>
               ))}
             </TableRow>
-            {lignes}
+            {Array.from(Array(31).keys()).map((day) => (
+              <TableRow key={"ligne" + day}>
+                {Array.from(
+                  moment
+                    .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
+                    .by("month")
+                ).map((month) => {
+                  let myDate = moment([month.year(), month.month(), day + 1]);
+                  return (
+                    // Numéro du jour
+                    <React.Fragment
+                      key={"ligne" + day + "i" + month.year() + month.month()}
+                    >
+                      <TableCellDate
+                        myDate={myDate}
+                        onContextMenu={onContextMenu}
+                        onClick={onClick}
+                        typeHighlight={typeHighlight(myDate, highlighted)}
+                      />
+
+                      <TableCellCalendrier
+                        myDate={myDate}
+                        onContextMenu={onContextMenu}
+                        onClick={onClick}
+                        typeHighlight={typeHighlight(myDate, highlighted)}
+                        tooltipTitle={tooltipTitle(myDate, conges)}
+                        conge={conges?.find(
+                          (item) => item.date === myDate.format("YYYY-MM-DD")
+                        )}
+                      />
+
+                      {/* Vacances scolaires */}
+                      <TableCellVacances myDate={myDate} />
+                    </React.Fragment>
+                  );
+                })}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

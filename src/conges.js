@@ -1,4 +1,3 @@
-import React from "react";
 import { estFerie } from "./joursFeries";
 import { putApiData, deleteApiData } from "./ApiData";
 import { memoize } from "./memoize";

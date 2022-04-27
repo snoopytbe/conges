@@ -9,6 +9,7 @@ build/
 dist/
 node_modules/
 aws-exports.js
+urlAPI.js
 awsconfiguration.json
 amplifyconfiguration.json
 amplifyconfiguration.dart

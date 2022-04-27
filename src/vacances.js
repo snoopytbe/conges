@@ -1,5 +1,6 @@
 import moment from "moment";
 import { Ascension } from "./joursFeries";
+import { memoize } from "./memoize";
 
 export function nthDay(dt, day, number) {
   // Retourne le nième jour du mois par rapport à la date dt
@@ -141,13 +142,13 @@ function estEte(dt) {
   );
 }
 
-export function estVacances(dt, zone) {
-  return (
-    estToussaint(dt) ||
-    estNoel(dt) ||
-    estFevrier(dt, zone) ||
-    estPaques(dt, zone) ||
-    estAscencion(dt) ||
-    estEte(dt)
-  );
-}
+export const estVacances = memoize((dt, zone) => {
+  return dt.isValid()
+    ? estToussaint(dt) ||
+        estNoel(dt) ||
+        estFevrier(dt, zone) ||
+        estPaques(dt, zone) ||
+        estAscencion(dt) ||
+        estEte(dt)
+    : false;
+});
