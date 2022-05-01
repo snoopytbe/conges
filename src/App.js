@@ -5,7 +5,7 @@ import Calendrier from "./Calendrier";
 export default function App() {
   return (
     <div>
-      <Calendrier annee={new Date().getFullYear()} />
+      <Calendrier />
     </div>
   );
 }

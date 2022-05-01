@@ -1,4 +1,6 @@
 import React from "react";
+
+// Import from Material UI
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
@@ -9,25 +11,58 @@ import Menu from "@mui/material/Menu";
 import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
-import Moment from "moment";
-import { extendMoment } from "moment-range";
-const moment = extendMoment(Moment);
-import "moment/min/locales.min";
+import Fab from "@mui/material/Fab";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+
+// Local import
 import { getApiData } from "./ApiData";
 import * as StyleTableCell from "./styleTableCell";
 import { TableCellVacances } from "./TableCellVacances";
 import { handleNewConge } from "./conges";
 import DateRangeDialog from "./DateRangeDialog";
-import Fab from "@mui/material/Fab";
-import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { TableCellCalendrier } from "./TableCellCalendrier";
 import { TableCellDate } from "./TableCellDate";
 import { calculeSoldeCongesAtDate } from "./conges";
+
+// Moment.js + moment-range
+import Moment from "moment";
+import { extendMoment } from "moment-range";
+const moment = extendMoment(Moment);
+import "moment/min/locales.min";
 moment.locale("fr-FR");
 
-export default function Calendrier(props) {
-  const { annee } = props;
+export default function Calendrier() {
+  // Permet de calculer le nombre de mois affichés en fonction de la taille de la fenêtre
+  const getNbMonthsFromWindowWidth = () => {
+    return Math.floor(window.innerWidth / 117);
+  };
+
+  // Permet de réajuster automatiquement le nombre de mois affichés en fonction de la taille de la fenêtre
+  React.useEffect(() => {
+    const handleWindowResize = () => {
+      var newNbMonths = getNbMonthsFromWindowWidth();
+      setNbMonths(newNbMonths);
+    };
+
+    handleWindowResize();
+
+    //window.addEventListener("resize", handleWindowResize);
+    //return () => window.removeEventListener("resize", handleWindowResize);
+  }, []);
+
+  // Nombre de mois affichés
+  const [nbMonths, setNbMonths] = React.useState(getNbMonthsFromWindowWidth());
+
+  //Par défaut la date de début est 4 mois avant la date courante
+  const [dateDebut, setDateDebut] = React.useState(
+    moment([
+      moment().add(-3, "months").year(),
+      moment().add(-3, "months").month(),
+      1,
+    ])
+  );
+
 
   const [mousePos, setMousePos] = React.useState({
     mouseX: null,
@@ -40,28 +75,6 @@ export default function Calendrier(props) {
   const [conges, setConges] = React.useState([]);
 
   const [openDialog, setOpenDialog] = React.useState(false);
-
-  const [nbMonths, setNbMonths] = React.useState(calculNbMonths());
-
-  function calculNbMonths() {
-    return Math.floor(window.innerWidth / 117);
-  }
-
-  const [dateDebut, setDateDebut] = React.useState(moment([annee, 0, 1]));
-
-  React.useEffect(() => {
-    const handleWindowResize = () => {
-      var newNbMonths = calculNbMonths();
-      setNbMonths(newNbMonths);
-    };
-
-    handleWindowResize();
-
-    window.addEventListener("resize", handleWindowResize);
-    return () => window.removeEventListener("resize", handleWindowResize);
-  }, []);
-
-  const zone = "C";
 
   const MenuOptions = [
     { menu: "Congés", abr: "CA", type: "conge" },
