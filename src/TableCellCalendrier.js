@@ -16,6 +16,18 @@ function areEqual(prevProps, nextProps) {
   );
 }
 
+function getAbr(abr, duree, demiJournee) {
+  var result = "";
+  if (duree === "J" || duree === demiJournee) result = abr;
+  if (duree?.includes(";") && demiJournee === "AM") {
+    result = abr.split(";")[0];
+  }
+  if (duree?.includes(";") && demiJournee === "PM") {
+    result = abr.split(";")[1];
+  }
+  return result;
+}
+
 function CellCalendrier(params) {
   const {
     myDate,
@@ -30,9 +42,7 @@ function CellCalendrier(params) {
   } = params;
 
   //console.log("CellCalendrier " + JSON.stringify(myDate));
-
-  var abr = conge?.abr;
-  var value = conge?.duree === demiJournee ? conge?.abr : "";
+  var abr = getAbr(conge?.abr, conge?.duree, demiJournee);
   var localType = type;
 
   if (myDate.isValid()) {
@@ -87,16 +97,16 @@ function CellCalendrier(params) {
         colSpan={colSpan}
         sx={{ ...styleToApply }}
         onClick={(event) => onClick(event, myDate)}
-        onContextMenu={(event) => onContextMenu(event)}
+        onContextMenu={(event) => onContextMenu(event, myDate)}
       >
-        {value}
+        {abr}
       </TableCell>
     </Tooltip>
   );
 }
 
 function TableCellCalendrierForMemo(params) {
-  const { conge, ...others } = params;
+  const { conge } = params;
 
   if (!conge || conge?.duree === "J")
     return (
@@ -113,7 +123,9 @@ function TableCellCalendrierForMemo(params) {
         <CellCalendrier
           {...params}
           type={
-            conge.duree === "AM" ? "demiJourneeConge" : "demiJourneeSansConge"
+            conge.duree.includes("AM")
+              ? "demiJourneeConge"
+              : "demiJourneeSansConge"
           }
           demiJournee="AM"
         />
@@ -121,7 +133,9 @@ function TableCellCalendrierForMemo(params) {
         <CellCalendrier
           {...params}
           type={
-            conge.duree === "PM" ? "demiJourneeConge" : "demiJourneeSansConge"
+            conge.duree.includes("PM")
+              ? "demiJourneeConge"
+              : "demiJourneeSansConge"
           }
           demiJournee="PM"
         />

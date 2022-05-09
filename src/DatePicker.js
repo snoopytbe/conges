@@ -9,6 +9,7 @@ import 'moment/min/locales.min';
 moment.locale('fr-FR');
 
 export default function MyDatePicker(props) {
+  // eslint-disable-next-line react/prop-types
   const { name, label, value, onChange } = props;
 
   return (

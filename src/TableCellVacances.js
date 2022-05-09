@@ -10,6 +10,7 @@ function areEqual(prevProps, nextProps) {
 }
 
 function TableCellVacancesForMemo(props) {
+  // eslint-disable-next-line react/prop-types
   const { myDate } = props;
   const zone = "C";
 

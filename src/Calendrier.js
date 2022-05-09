@@ -8,7 +8,6 @@ import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import Paper from "@mui/material/Paper";
 import Menu from "@mui/material/Menu";
-import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import Fab from "@mui/material/Fab";
@@ -47,8 +46,8 @@ export default function Calendrier() {
 
     handleWindowResize();
 
-    //window.addEventListener("resize", handleWindowResize);
-    //return () => window.removeEventListener("resize", handleWindowResize);
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
   }, []);
 
   // Nombre de mois affichés
@@ -63,84 +62,105 @@ export default function Calendrier() {
     ])
   );
 
-
-  const [mousePos, setMousePos] = React.useState({
-    mouseX: null,
-    mouseY: null,
-  });
-  const [activeMenu, setActiveMenu] = React.useState(false);
-
   const [highlighted, setHighlighted] = React.useState(null);
 
   const [conges, setConges] = React.useState([]);
 
   const [openDialog, setOpenDialog] = React.useState(false);
 
+  const [abrSelected, setAbrSelected] = React.useState("");
+
+  const [mousePosMenu, setMousePosMenu] = React.useState({
+    mouseX: null,
+    mouseY: null,
+  });
+
+  const [activeMenu, setActiveMenu] = React.useState(false);
+
   const MenuOptions = [
-    { menu: "Congés", abr: "CA", type: "conge" },
-    { menu: "RTT", abr: "RTT", type: "conge" },
-    { menu: "CET", abr: "CET", type: "conge" },
-    { menu: "Formation", abr: "FOR", type: "conge" },
-    { menu: "Maladie", abr: "MAL", type: "conge" },
-    { menu: "Présent", abr: "", type: "conge" },
-    { menu: "Télétravail", abr: "TL", type: "conge" },
-    { menu: "Divider", abr: "", type: "separateur" },
-    { menu: "Journée", abr: "J", type: "temps" },
-    { menu: "Matin", abr: "AM", type: "temps" },
-    { menu: "Après-midi", abr: "PM", type: "temps" },
+    { menu: "Congés", abr: "CA" },
+    { menu: "RTT", abr: "RTT" },
+    { menu: "CET", abr: "CET" },
+    { menu: "Formation", abr: "FOR" },
+    { menu: "Maladie", abr: "MAL" },
+    { menu: "Présent", abr: "" },
+    { menu: "Télétravail", abr: "TL" },
   ];
 
-  const handleDescrClose = () => {
-    setActiveMenu(false);
-  };
-
-  var clicked = false;
-  var startDateHighlight = null;
-
-  const onClick = React.useCallback(
-    (event, myDate) => {
-      event.preventDefault();
-
-      if (!clicked) {
-        //setStartDateHighlight(myDate);
-        startDateHighlight = myDate;
-        setHighlighted(moment.range(myDate, myDate));
-      } else {
-        setHighlighted(
-          moment.range(
-            moment.min(startDateHighlight, myDate),
-            moment.max(startDateHighlight, myDate)
-          )
-        );
-        setMousePos({
-          mouseX: event.clientX - 2,
-          mouseY: event.clientY - 4,
-        });
-        setActiveMenu(true);
-      }
-      console.log("ok");
-      clicked = !clicked;
-    },
-    [clicked, startDateHighlight]
-  );
-
-  const onContextMenu = React.useCallback((event) => {
+  const handleMenuItemClick = (event, abr) => {
     event.preventDefault();
-    setMousePos({
+    setMousePosSubMenu({
       mouseX: event.clientX - 2,
       mouseY: event.clientY - 4,
     });
-    setActiveMenu(true);
+    setActiveSubMenu(true);
+    setAbrSelected(abr);
+  };
+
+  const [mousePosSubMenu, setMousePosSubMenu] = React.useState({
+    mouseX: null,
+    mouseY: null,
+  });
+
+  const [activeSubMenu, setActiveSubMenu] = React.useState(false);
+
+  const SubMenuOptions = [
+    { menu: "Journée", duree: "J" },
+    { menu: "Matin", duree: "AM" },
+    { menu: "Après-midi", duree: "PM" },
+  ];
+
+  const handleDescrClose = () => {
+    setActiveSubMenu(false);
+    setActiveMenu(false);
+    setAbrSelected("");
+  };
+
+  const handleSubMenuItemClick = (event, duree) => {
+    event.preventDefault();
+    var newConges = handleNewConge(abrSelected, duree, conges, highlighted);
+    setConges(newConges);
+    setHighlighted(null);
+    handleDescrClose();
+  };
+
+  const clicked = React.useRef(false);
+  const startDateHighlight = React.useRef(null);
+
+  const onClick = React.useCallback((event, myDate) => {
+    event.preventDefault();
+
+    if (!clicked.current) {
+      startDateHighlight.current = myDate;
+      setHighlighted(moment.range(myDate, myDate));
+    } else {
+      setHighlighted(
+        moment.range(
+          moment.min(startDateHighlight.current, myDate),
+          moment.max(startDateHighlight.current, myDate)
+        )
+      );
+    }
+    clicked.current = !clicked.current;
   }, []);
 
-  const handleMenuItemClick = (event, abr, type) => {
-    event.preventDefault();
-    //console.log(highlighted);
-    var newConges = handleNewConge(abr, type, conges, highlighted);
-    setConges(newConges);
-    setActiveMenu(false);
-    setHighlighted(null);
-  };
+  const onContextMenu = React.useCallback(
+    (event, myDate) => {
+      event.preventDefault();
+
+      if (!highlighted?.contains(myDate))
+        setHighlighted(moment.range(myDate, myDate));
+
+      clicked.current = false;
+
+      setMousePosMenu({
+        mouseX: event.clientX - 2,
+        mouseY: event.clientY - 4,
+      });
+      setActiveMenu(true);
+    },
+    [highlighted]
+  );
 
   const typeHighlight = (myDate, highlighted) => {
     var result = "";
@@ -183,17 +203,19 @@ export default function Calendrier() {
     return result;
   }
 
-  const tooltipTitle = (myDate, conges) => {
+  const tooltipTitle = (myDate, conge) => {
     var result = "";
 
-    var conge = conges?.find(
-      (item) => item.date === myDate.format("YYYY-MM-DD")
-    );
-
-    if (conge?.abr === "CA" || conge?.abr === "RTT") {
+    if (
+      conge?.abr.includes("CA") ||
+      conge?.abr.includes("RTT") ||
+      conge?.abr.includes("TL")
+    ) {
       result = "Solde CA : " + calculeSoldeCongesAtDate(myDate, "CA", conges);
       result +=
         ", solde RTT : " + calculeSoldeCongesAtDate(myDate, "RTT", conges);
+      result +=
+        ", solde TL : " + calculeSoldeCongesAtDate(myDate, "TL", conges);
     }
     return result;
   };
@@ -283,6 +305,14 @@ export default function Calendrier() {
                     .by("month")
                 ).map((month) => {
                   let myDate = moment([month.year(), month.month(), day + 1]);
+
+                  const TDM = (num) => `${num <= 8 ? "0" : ""}${num + 1}`;
+
+                  let conge = conges?.find(
+                    (item) =>
+                      item.date ===
+                      `${month.year()}-${TDM(month.month())}-${TDM(day)}`
+                  );
                   return (
                     // Numéro du jour
                     <React.Fragment
@@ -300,10 +330,8 @@ export default function Calendrier() {
                         onContextMenu={onContextMenu}
                         onClick={onClick}
                         typeHighlight={typeHighlight(myDate, highlighted)}
-                        tooltipTitle={tooltipTitle(myDate, conges)}
-                        conge={conges?.find(
-                          (item) => item.date === myDate.format("YYYY-MM-DD")
-                        )}
+                        tooltipTitle={tooltipTitle(myDate, conge)}
+                        conge={conge}
                       />
 
                       {/* Vacances scolaires */}
@@ -322,27 +350,44 @@ export default function Calendrier() {
         onClose={handleDescrClose}
         anchorReference="anchorPosition"
         anchorPosition={
-          mousePos.mouseY !== null && mousePos.mouseX !== null
-            ? { top: mousePos.mouseY, left: mousePos.mouseX }
+          mousePosMenu.mouseY !== null && mousePosMenu.mouseX !== null
+            ? { top: mousePosMenu.mouseY, left: mousePosMenu.mouseX }
             : undefined
         }
       >
         {MenuOptions.map((option) => {
-          var result;
-          if (option.menu === "Divider") result = <Divider key={1} />;
-          else
-            result = (
-              <MenuItem
-                key={option.menu}
-                sx={{ fontSize: "0.8em", lineHeight: "1" }}
-                onClick={(event) =>
-                  handleMenuItemClick(event, option.abr, option.type)
-                }
-              >
-                {option.menu}
-              </MenuItem>
-            );
-          return result;
+          return (
+            <MenuItem
+              key={option.menu}
+              sx={{ fontSize: "0.8em", lineHeight: "1", width: "100px" }}
+              onClick={(event) => handleMenuItemClick(event, option.abr)}
+            >
+              {option.menu}
+            </MenuItem>
+          );
+        })}
+      </Menu>
+      <Menu
+        keepMounted
+        open={activeSubMenu}
+        onClose={handleDescrClose}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          mousePosSubMenu.mouseY !== null && mousePosMenu.mouseX !== null
+            ? { top: mousePosSubMenu.mouseY, left: mousePosMenu.mouseX + 100 }
+            : undefined
+        }
+      >
+        {SubMenuOptions.map((option) => {
+          return (
+            <MenuItem
+              key={option.menu}
+              sx={{ fontSize: "0.8em", lineHeight: "1" }}
+              onClick={(event) => handleSubMenuItemClick(event, option.duree)}
+            >
+              {option.menu}
+            </MenuItem>
+          );
         })}
       </Menu>
       {openDialog && (

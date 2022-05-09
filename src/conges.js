@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { estFerie } from "./joursFeries";
 import { putApiData, deleteApiData } from "./ApiData";
 import { memoize } from "./memoize";
@@ -18,72 +19,86 @@ function estWE(jour) {
   return jour.day() === 6 || jour.day() === 0;
 }
 
-export const calculeCapitalConges = memoize((anneeDebutPeriodeConges, abr) => {
+const calculeCapitalTL = (date, conges) => {
+  var periodeConges = moment.range(
+    moment([date.year(), date.month(), 1]),
+    moment([date.year(), date.month() + 1, 1]).add(-1, "days")
+  );
+
+  var nbJourOuvrables = 0;
+  Array.from(periodeConges.by("day")).forEach((oneDay) => {
+    if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
+  });
+
+  conges.forEach((oneConge) => {
+    if (periodeConges.contains(moment(oneConge.date, "YYYY-MM-DD")))
+      if (
+        oneConge.duree === "J" &&
+        (oneConge.abr === "CA" ||
+          oneConge.abr === "RTT" ||
+          oneConge.abr === "MAL")
+      ) {
+        nbJourOuvrables -= 1;
+      }
+  });
+
+  return Math.ceil(nbJourOuvrables / 2);
+};
+
+const calculeCapitalConges = memoize((date, abr) => {
   var result;
-  var t0 = Date.now();
+
   if (abr === "CA") result = 27;
   else {
     var periodeConges = moment.range(
-      moment([anneeDebutPeriodeConges, 4, 1]),
-      moment([anneeDebutPeriodeConges + 1, 3, 30])
+      moment([date.year() + (date.month() <= 3 && -1), 4, 1]),
+      moment([date.year() + (date.month() > 3 && 1), 3, 30])
     );
+
     var nbJourOuvrables = 0;
     Array.from(periodeConges.by("day")).forEach((oneDay) => {
       if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
     });
     result = nbJourOuvrables - 27 - 209;
   }
-  //console.log(`calculeCapitalConges: ${Date.now() - t0}`);
+  return result;
+});
+
+const compteCongesPeriode = memoize((abr, conges, date) => {
+  var result = 0;
+
+  var periodeDecompte = moment.range(
+    abr === "TL"
+      ? moment([date.year(), date.month(), 1])
+      : moment([date.year() + (date.month() <= 3 && -1), 4, 1]),
+    date
+  );
+
+  conges.forEach((oneConge) => {
+    if (periodeDecompte.contains(moment(oneConge.date, "yyyy-MM-DD")))
+      if (abr === "TL" && oneConge.abr.includes(abr)) {
+        result += 1;
+      } else if (oneConge.abr === abr) {
+        result += 1;
+      } else if (oneConge.abr.includes(abr)) {
+        result += 0.5;
+      }
+  });
   return result;
 });
 
 export const calculeSoldeCongesAtDate = memoize((date, abr, conges) => {
-  var t0 = Date.now();
-  var anneeDebutPeriodeConges =
-    date.month() <= 3 ? date.year() - 1 : date.year();
-  var result = calculeCapitalConges(anneeDebutPeriodeConges, abr);
-  result -= compteCongesPeriode(
-    abr,
-    conges,
-    moment([anneeDebutPeriodeConges, 4, 1]),
-    date
-  );
-  //console.log(`calculeSoldeCongesAtDate: ${Date.now() - t0}`);
+  var result;
+  if (abr === "TL") {
+    result = calculeCapitalTL(date, conges);
+  } else {
+    result = calculeCapitalConges(date, abr);
+  }
+  result -= compteCongesPeriode(abr, conges, date);
   return result;
 });
 
-export const compteCongesPeriode = memoize(
-  (abr, conges, dateDebut, dateFin) => {
-    var result = 0;
-
-    conges.forEach((oneConge) => {
-      if (
-        moment(oneConge.date, "yyyy-MM-DD").isSameOrAfter(dateDebut) &&
-        moment(oneConge.date, "yyyy-MM-DD").isSameOrBefore(dateFin) &&
-        oneConge.abr === abr
-      ) {
-        result += 1;
-      }
-    });
-    return result;
-  }
-);
-
-export function compteCongesAnnee(conges, anneeDebut) {
-  var t0 = Date.now();
-  var dateDebut = moment([anneeDebut, 4, 1]);
-  var dateFin = moment([anneeDebut + 1, 3, 30]);
-
-  var result = { CA: "", RTT: "", CET: "", FOR: "", MAL: "" };
-  Object.keys(result).forEach(
-    (key) =>
-      (result[key] = compteCongesPeriode(key, conges, dateDebut, dateFin))
-  );
-  console.log(`compteCongesAnnee: ${Date.now() - t0}`);
-  return result;
-}
-
-export function handleNewConge(abreviation, type, conges, highlighted) {
+export function handleNewConge(abr, duree, conges, highlighted) {
   let newConges = [];
   // on va ajouter/modifier avec le PUT tous les jours "highlighted"
   //console.log(abreviation);
@@ -92,35 +107,69 @@ export function handleNewConge(abreviation, type, conges, highlighted) {
     let day = oneHighlighted.day();
 
     if (!estFerie(oneHighlighted) && !(day === 0) && !(day === 6)) {
-      // On commence par chercher l'id et on le créé s'il n'existe pas
-      let id =
-        conges.filter((oneConge) =>
-          moment(oneConge.date).isSame(oneHighlighted, "day")
-        )?.[0]?.id ?? uuidv4();
+      // On commence par chercher s'il existe déjà un congé à cette date
+      let prevConge = conges.find((item) =>
+        moment(item.date).isSame(oneHighlighted, "day")
+      );
 
-      let duree =
-        type === "temps"
-          ? abreviation
-          : conges.filter((oneConge) =>
-              moment(oneConge.date).isSame(oneHighlighted, "day")
-            )?.[0]?.duree ?? "J";
+      // On créé l'id s'il n'existe pas
+      let id = prevConge?.id ?? uuidv4();
 
-      let abr =
-        type === "temps"
-          ? conges.filter((oneConge) =>
-              moment(oneConge.date).isSame(oneHighlighted, "day")
-            )?.[0]?.abr
-          : abreviation;
+      // On retrouve la duree précédente
+      let prevDuree = prevConge?.duree ?? "";
+
+      let storedDuree = duree;
+      let storedAbr = abr;
+
+      if (prevDuree === "AM" && duree === "PM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = prevConge.abr + ";" + abr;
+        } else {
+          storedDuree = prevDuree;
+          storedAbr = prevConge.abr;
+        }
+      }
+
+      if (prevDuree === "PM" && duree === "AM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = abr + ";" + prevConge.abr;
+        } else {
+          storedDuree = prevDuree;
+          storedAbr = prevConge.abr;
+        }
+      }
+
+      if (prevDuree === "AM;PM" && duree === "AM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = abr + ";" + prevConge.abr.split(";")[1];
+        } else {
+          storedDuree = "PM";
+          storedAbr = prevConge.abr.split(";")[1];
+        }
+      }
+
+      if (prevDuree === "AM;PM" && duree === "PM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = prevConge.abr.split(";")[0] + ";" + abr;
+        } else {
+          storedDuree = "AM";
+          storedAbr = prevConge.abr.split(";")[0];
+        }
+      }
 
       let data = {
         date: oneHighlighted.format("yyyy-MM-DD"),
-        abr: abr,
+        abr: storedAbr,
         id: id,
-        duree: duree,
+        duree: storedDuree,
       };
 
       //console.log(data)
-      if (!abr) {
+      if (!storedAbr) {
         deleteApiData([data]);
       } else {
         putApiData([data]);
