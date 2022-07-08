@@ -15,6 +15,15 @@ export function nthDay(dt, day, number) {
   return result;
 }
 
+/**
+ * Retourne Vrai si la date donnée est le dernier jour du mois
+ * @param dt - une date
+ * @returns Une valeur booléenne.
+ */
+export function estDernierJourMois(dt) {
+  return dt.isValid() && dt.clone().add(1, "days").month() !== dt.month();
+}
+
 function estToussaint(dt) {
   // Le 1/11 est dans la 2e semaine de vacances de la Toussaint
   var firstNov = moment([dt.year(), 10, 1]);

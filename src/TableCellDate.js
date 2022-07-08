@@ -2,6 +2,9 @@ import React from "react";
 import TableCell from "@mui/material/TableCell";
 import { estFerie } from "./joursFeries";
 import * as StyleTableCell from "./styleTableCell";
+import moment from "moment";
+import "moment/min/locales.min";
+moment.locale("fr-FR");
 
 function areEqual(prevProps, nextProps) {
   return (
@@ -55,6 +58,8 @@ function TableCellDateForMemo(params) {
   }
 
   styleToApply = { ...styleToApply, ...styleHighlight };
+  if (moment().isSame(myDate, "day"))
+    styleToApply = { ...styleToApply, ...StyleTableCell.dateToday };
 
   return (
     <TableCell

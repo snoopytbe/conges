@@ -7,6 +7,7 @@ const couleurVacances = "#e60000";
 const couleurVacancesAutres = "#FF8F8F";
 const white = "#ffffff";
 const black = "#000000";
+const red = "#FF0000";
 
 export const base = {
   border: `0.5px solid ${white}`,
@@ -42,9 +43,9 @@ export const date = {
 };
 
 export const dateToday = {
-  ...date,
-  color: "red",
-  fontWeight: "bold",
+  color: white,
+  backgroundColor: red,
+  borderColor: red,
 };
 
 export const WE = {
@@ -62,7 +63,7 @@ export const ferie = {
 const colonneConges = {
   ...base,
   color: black,
-  width: "61px",
+  width: "63px",
 };
 
 export const sansConge = {

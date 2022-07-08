@@ -65,29 +65,34 @@ export function Noel(year) {
   return moment([year, 11, 25]);
 }
 
-function AreDateEquals(date1, date2) {
-  return (
-    date1.year() === date2.year() &&
-    date1.month() === date2.month() &&
-    date1.date() === date2.date()
-  );
-}
+export const estWE = (day) => {
+  return day.day() === 6 || day.day() === 0;
+};
 
-export const estFerie = memoize((myDate) => {
-  var year = myDate.year();
+export const estFerie = memoize((day) => {
+  var year = day.year();
 
   return (
-    AreDateEquals(NouvelAn(year), myDate) ||
-    AreDateEquals(LundiDePaques(year), myDate) ||
-    AreDateEquals(PremierMai(year), myDate) ||
-    AreDateEquals(Ascension(year), myDate) ||
-    AreDateEquals(HuitMai(year), myDate) ||
-    AreDateEquals(LundiDePentecote(year), myDate) ||
-    AreDateEquals(Ascension(year), myDate) ||
-    AreDateEquals(FeteNationale(year), myDate) ||
-    AreDateEquals(Assomption(year), myDate) ||
-    AreDateEquals(Toussaint(year), myDate) ||
-    AreDateEquals(Armistice(year), myDate) ||
-    AreDateEquals(Noel(year), myDate)
+    NouvelAn(year).isSame(day, "day") ||
+    LundiDePaques(year).isSame(day, "day") ||
+    PremierMai(year).isSame(day, "day") ||
+    Ascension(year).isSame(day, "day") ||
+    HuitMai(year).isSame(day, "day") ||
+    LundiDePentecote(year).isSame(day, "day") ||
+    FeteNationale(year).isSame(day, "day") ||
+    Assomption(year).isSame(day, "day") ||
+    Toussaint(year).isSame(day, "day") ||
+    Armistice(year).isSame(day, "day") ||
+    Noel(year).isSame(day, "day")
   );
+});
+
+// Le nombre de jours ouvrables est le nombre de jours
+// de la période de calcul qui ne sont ni fériés ni des WE
+export const nbJourOuvrables = memoize((periodeCalcul) => {
+  var result = 0;
+  Array.from(periodeCalcul?.by("day")).forEach((oneDay) => {
+    if (!estFerie(oneDay) && !estWE(oneDay)) result += 1;
+  });
+  return result;
 });

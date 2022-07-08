@@ -1,113 +1,142 @@
-/* eslint-disable no-unused-vars */
-import { estFerie } from "./joursFeries";
+import { nbJourOuvrables, estFerie, estWE } from "./joursFeries";
+// eslint-disable-next-line no-unused-vars
 import { putApiData, deleteApiData } from "./ApiData";
 import { memoize } from "./memoize";
+import { uuidv4 } from "./uuid";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
 const moment = extendMoment(Moment);
 
-function uuidv4() {
-  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-    (
-      c ^
-      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
-    ).toString(16)
-  );
-}
+/**
+ * Prend un objet date moment.js et renvoie une chaîne au format AAAA-MM-JJ
+ * @param date - L'objet date que vous souhaitez formater.
+ * @returns Une fonction qui prend une date comme argument et renvoie une chaîne au format AAAA-MM-JJ.
+ */
+export const formatMoment = (date) => {
+  // Permet d'écrire sur le nombre num sur 2 digits
+  const TDM = (num) => `${num <= 8 ? "0" : ""}${num + 1}`;
 
-function estWE(jour) {
-  return jour.day() === 6 || jour.day() === 0;
-}
+  return `${date.year()}-${TDM(date.month())}-${TDM(date.date()-1)}`;
+};
 
-const calculeCapitalTL = (date, conges) => {
-  var periodeConges = moment.range(
+/**
+ * Il renvoie l'objet conge du tableau conges qui a la même date que la date passée en argument
+ * @param date - la date à vérifier
+ * @param conges - la liste des conges
+ * @returns Le conge qui correspond à la date.
+ */
+export const giveCongeFromDate = memoize((date, conges) => {
+  return conges?.find((item) => item.date === formatMoment(date));
+});
+
+// Calcule le nombre de jour de TL possibles pour une date donnée
+// C'est le nombre de jour du mois travaillés / 2
+const calculeCapitalTL = memoize((date, conges) => {
+  // La période de calcul est le mois de "date"
+  var periodeCalcul = moment.range(
     moment([date.year(), date.month(), 1]),
     moment([date.year(), date.month() + 1, 1]).add(-1, "days")
   );
 
-  var nbJourOuvrables = 0;
-  Array.from(periodeConges.by("day")).forEach((oneDay) => {
-    if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
-  });
+  // Le nombre de jours travaillés est le nombre de jours ouvrables
+  var nbJoursTravailles = nbJourOuvrables(periodeCalcul);
 
+  // Auquel on déduit le nombre de journées complètes de CA, RTT ou MAL
   conges.forEach((oneConge) => {
-    if (periodeConges.contains(moment(oneConge.date, "YYYY-MM-DD")))
-      if (
-        oneConge.duree === "J" &&
-        (oneConge.abr === "CA" ||
-          oneConge.abr === "RTT" ||
-          oneConge.abr === "MAL")
-      ) {
-        nbJourOuvrables -= 1;
-      }
+    if (periodeCalcul.contains(moment(oneConge.date, "YYYY-MM-DD")))
+      if (oneConge.duree === "J" && "CA;RTT;MAL".includes(oneConge.abr))
+        nbJoursTravailles -= 1;
   });
 
-  return Math.ceil(nbJourOuvrables / 2);
-};
-
-const calculeCapitalConges = memoize((date, abr) => {
-  var result;
-
-  if (abr === "CA") result = 27;
-  else {
-    var periodeConges = moment.range(
-      moment([date.year() + (date.month() <= 3 && -1), 4, 1]),
-      moment([date.year() + (date.month() > 3 && 1), 3, 30])
-    );
-
-    var nbJourOuvrables = 0;
-    Array.from(periodeConges.by("day")).forEach((oneDay) => {
-      if (!estFerie(oneDay) && !estWE(oneDay)) nbJourOuvrables += 1;
-    });
-    result = nbJourOuvrables - 27 - 209;
-  }
-  return result;
+  return Math.ceil(nbJoursTravailles / 2);
 });
 
+// Calcule le nombre de jour de congés possibles pour une date donnée
+// et un abr donné
+const calculeCapitalAutres = memoize((date, abr) => {
+  // Si abr est CA alors le résultat 27
+  if (abr === "CA") return 27;
+
+  // La période de calcul est la période de congé courante
+  // l'année de congés va du 1/5 au 30/4 de l'année suivante
+  // On commence par calculer l'année de début de période de congés
+  // courante en fonction du mois de date
+  var anneeDebutPeriode = date.year() + (date.month() <= 3 && -1);
+  var periodeCalcul = moment.range(
+    moment([anneeDebutPeriode, 4, 1]),
+    moment([anneeDebutPeriode + 1, 3, 30])
+  );
+
+  return nbJourOuvrables(periodeCalcul) - 27 - 209;
+});
+
+/**
+ * Calcule le nombre de jours de nombre de congés possibles pour une date donnée
+ * @param date - la date où est calculé le solde
+ * @param abr - le type de congé (par exemple "RTT", "CA")
+ * @param conges - un tableau d'objets, chaque objet représentant une jour de congés.
+ * @returns La fonction réoriente vers la bonne fonction de calcul en fonction
+ * du type de congés
+ */
+const calculeCapitalConges = (date, abr, conges) => {
+  if (abr === "TL") {
+    return calculeCapitalTL(date, conges);
+  } else {
+    return calculeCapitalAutres(date, abr);
+  }
+};
+
+// Compte le nombre de congés de type abr posés sur une période
 const compteCongesPeriode = memoize((abr, conges, date) => {
   var result = 0;
 
-  var periodeDecompte = moment.range(
+  // Pour un TL la période de décompte est le début du mois de "date"
+  // Sinon elle est le 1/5 qui précède "date"
+  var debutPeriode =
     abr === "TL"
       ? moment([date.year(), date.month(), 1])
-      : moment([date.year() + (date.month() <= 3 && -1), 4, 1]),
-    date
-  );
+      : moment([date.year() + (date.month() <= 3 && -1), 4, 1]);
 
+  // La période de décompte se termine à "date"
+  var periodeDecompte = moment.range(debutPeriode, date);
+
+  // On compte le nombre de jours avec abr
   conges.forEach((oneConge) => {
     if (periodeDecompte.contains(moment(oneConge.date, "yyyy-MM-DD")))
-      if (abr === "TL" && oneConge.abr.includes(abr)) {
-        result += 1;
-      } else if (oneConge.abr === abr) {
-        result += 1;
-      } else if (oneConge.abr.includes(abr)) {
-        result += 0.5;
+      if (oneConge.abr.includes(abr)) {
+        // On décompte 1 journée pour les durées égales à J et les TL
+        if (oneConge.duree === "J" || abr === "TL") result += 1;
+        // Et une demi-journée sinon
+        else result += 0.5;
       }
   });
+
   return result;
 });
 
-export const calculeSoldeCongesAtDate = memoize((date, abr, conges) => {
-  var result;
-  if (abr === "TL") {
-    result = calculeCapitalTL(date, conges);
-  } else {
-    result = calculeCapitalConges(date, abr);
-  }
-  result -= compteCongesPeriode(abr, conges, date);
-  return result;
-});
+/**
+ * Calcule le nombre de jours de congés restants à une date donnée
+ * @param date - la date où est calculé le solde
+ * @param abr - le type de congé (par exemple "RTT", "CA")
+ * @param conges - un tableau d'objets, chaque objet représentant une jour de congés.
+ * @returns Le résultat de la fonction est la différence entre le capital de congés
+ * et le nombre de congés posés
+ */
+export const calculeSoldeCongesAtDate = (date, abr, conges) => {
+  return (
+    calculeCapitalConges(date, abr, conges) -
+    compteCongesPeriode(abr, conges, date)
+  );
+};
 
 export function handleNewConge(abr, duree, conges, highlighted) {
   let newConges = [];
-  // on va ajouter/modifier avec le PUT tous les jours "highlighted"
-  //console.log(abreviation);
-  Array.from(highlighted.by("day")).forEach((oneHighlighted) => {
-    // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni dimanche, ni samedi
-    let day = oneHighlighted.day();
 
-    if (!estFerie(oneHighlighted) && !(day === 0) && !(day === 6)) {
-      // On commence par chercher s'il existe déjà un congé à cette date
+  // on va ajouter/modifier avec le PUT tous les jours "highlighted"
+  Array.from(highlighted.by("day")).forEach((oneHighlighted) => {
+    // On ne sauvegarde les conges que pour les jours qui ne sont ni fériés, ni we
+    if (!estFerie(oneHighlighted) && !estWE(oneHighlighted)) {
+      // On commence par chercher s'il existe, un jour de congés à cette date
       let prevConge = conges.find((item) =>
         moment(item.date).isSame(oneHighlighted, "day")
       );
@@ -162,7 +191,7 @@ export function handleNewConge(abr, duree, conges, highlighted) {
       }
 
       let data = {
-        date: oneHighlighted.format("yyyy-MM-DD"),
+        date: formatMoment(oneHighlighted),
         abr: storedAbr,
         id: id,
         duree: storedDuree,
@@ -170,9 +199,9 @@ export function handleNewConge(abr, duree, conges, highlighted) {
 
       //console.log(data)
       if (!storedAbr) {
-        deleteApiData([data]);
+        //deleteApiData([data]);
       } else {
-        putApiData([data]);
+        //putApiData([data]);
         newConges = [...newConges, data];
       }
     }
@@ -184,6 +213,5 @@ export function handleNewConge(abr, duree, conges, highlighted) {
       newConges = [...newConges, oneConge];
   });
 
-  //console.log(conges)
   return newConges;
 }

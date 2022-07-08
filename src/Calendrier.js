@@ -7,12 +7,8 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import Paper from "@mui/material/Paper";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
-import Fab from "@mui/material/Fab";
-import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import UAParser from "ua-parser-js";
 
 // Local import
 import { getApiData } from "./ApiData";
@@ -22,7 +18,9 @@ import { handleNewConge } from "./conges";
 import DateRangeDialog from "./DateRangeDialog";
 import { TableCellCalendrier } from "./TableCellCalendrier";
 import { TableCellDate } from "./TableCellDate";
-import { calculeSoldeCongesAtDate } from "./conges";
+//import { useWindowWidth } from "./useWindowWidth";
+import LeftRightNav from "./LeftRightNav";
+import MyMenu from "./MyMenu";
 
 // Moment.js + moment-range
 import Moment from "moment";
@@ -31,101 +29,65 @@ const moment = extendMoment(Moment);
 import "moment/min/locales.min";
 moment.locale("fr-FR");
 
+// Permet de savoir si le site est accédé depuis un mobile
+var parser = new UAParser();
+const IS_MOBILE = parser?.getDevice()?.type === "mobile";
+
 export default function Calendrier() {
-  // Permet de calculer le nombre de mois affichés en fonction de la taille de la fenêtre
-  const getNbMonthsFromWindowWidth = () => {
-    return Math.floor(window.innerWidth / 117);
-  };
+  /* Le nombre de mois qui doivent être affichés dans le calendrier, en fonction
+   * de la largeur de la fenêtre actuelle */
+  const nbMonths = Math.floor(window.innerWidth / 139);
 
-  // Permet de réajuster automatiquement le nombre de mois affichés en fonction de la taille de la fenêtre
-  React.useEffect(() => {
-    const handleWindowResize = () => {
-      var newNbMonths = getNbMonthsFromWindowWidth();
-      setNbMonths(newNbMonths);
-    };
-
-    handleWindowResize();
-
-    window.addEventListener("resize", handleWindowResize);
-    return () => window.removeEventListener("resize", handleWindowResize);
-  }, []);
-
-  // Nombre de mois affichés
-  const [nbMonths, setNbMonths] = React.useState(getNbMonthsFromWindowWidth());
-
-  //Par défaut la date de début est 4 mois avant la date courante
+  //La date de début est égale au minimum entre la moitié du nombre mois
+  // affichés
   const [dateDebut, setDateDebut] = React.useState(
-    moment([
-      moment().add(-3, "months").year(),
-      moment().add(-3, "months").month(),
-      1,
-    ])
+    moment()
+      .add(-nbMonths / 2, "months")
+      .date(1)
   );
 
-  const [highlighted, setHighlighted] = React.useState(null);
-
+  /* Variable où sont stockés les congés */
   const [conges, setConges] = React.useState([]);
 
-  const [openDialog, setOpenDialog] = React.useState(false);
+  /* Chargement des congés au démarrage */
+  React.useEffect(() => {
+    getApiData().then((data) => setConges(data));
+  }, []);
 
-  const [abrSelected, setAbrSelected] = React.useState("");
+  /* Paramètres du menu affiché lors du click droit */
+  const menuOptions = [
+    { menu: "Congés", value: "CA" },
+    { menu: "RTT", value: "RTT" },
+    { menu: "CET", value: "CET" },
+    { menu: "Formation", value: "FOR" },
+    { menu: "Maladie", value: "MAL" },
+    { menu: "Présent", value: "" },
+    { menu: "Télétravail", value: "TL" },
+  ];
 
-  const [mousePosMenu, setMousePosMenu] = React.useState({
+  const subMenuOptions = [
+    { menu: "Journée", value: "J" },
+    { menu: "Matin", value: "AM" },
+    { menu: "Après-midi", value: "PM" },
+  ];
+
+  const [mousePos, setMousePos] = React.useState({
     mouseX: null,
     mouseY: null,
   });
 
   const [activeMenu, setActiveMenu] = React.useState(false);
 
-  const MenuOptions = [
-    { menu: "Congés", abr: "CA" },
-    { menu: "RTT", abr: "RTT" },
-    { menu: "CET", abr: "CET" },
-    { menu: "Formation", abr: "FOR" },
-    { menu: "Maladie", abr: "MAL" },
-    { menu: "Présent", abr: "" },
-    { menu: "Télétravail", abr: "TL" },
-  ];
-
-  const handleMenuItemClick = (event, abr) => {
+  const onMenuItemClick = (event, abr, duree) => {
     event.preventDefault();
-    setMousePosSubMenu({
-      mouseX: event.clientX - 2,
-      mouseY: event.clientY - 4,
-    });
-    setActiveSubMenu(true);
-    setAbrSelected(abr);
-  };
-
-  const [mousePosSubMenu, setMousePosSubMenu] = React.useState({
-    mouseX: null,
-    mouseY: null,
-  });
-
-  const [activeSubMenu, setActiveSubMenu] = React.useState(false);
-
-  const SubMenuOptions = [
-    { menu: "Journée", duree: "J" },
-    { menu: "Matin", duree: "AM" },
-    { menu: "Après-midi", duree: "PM" },
-  ];
-
-  const handleDescrClose = () => {
-    setActiveSubMenu(false);
-    setActiveMenu(false);
-    setAbrSelected("");
-  };
-
-  const handleSubMenuItemClick = (event, duree) => {
-    event.preventDefault();
-    var newConges = handleNewConge(abrSelected, duree, conges, highlighted);
-    setConges(newConges);
+    setConges(handleNewConge(abr, duree, conges, highlighted));
     setHighlighted(null);
-    handleDescrClose();
+    setActiveMenu(false);
   };
 
   const clicked = React.useRef(false);
   const startDateHighlight = React.useRef(null);
+  const [highlighted, setHighlighted] = React.useState(null);
 
   const onClick = React.useCallback((event, myDate) => {
     event.preventDefault();
@@ -140,6 +102,13 @@ export default function Calendrier() {
           moment.max(startDateHighlight.current, myDate)
         )
       );
+      if (IS_MOBILE) {
+        setMousePos({
+          mouseX: event.clientX - 2,
+          mouseY: event.clientY - 4,
+        });
+        setActiveMenu(true);
+      }
     }
     clicked.current = !clicked.current;
   }, []);
@@ -153,7 +122,7 @@ export default function Calendrier() {
 
       clicked.current = false;
 
-      setMousePosMenu({
+      setMousePos({
         mouseX: event.clientX - 2,
         mouseY: event.clientY - 4,
       });
@@ -162,63 +131,55 @@ export default function Calendrier() {
     [highlighted]
   );
 
-  const typeHighlight = (myDate, highlighted) => {
+  /**
+   * Renvoie le type d'highlight :
+   * Si la veille et le lendemain ne sont pas highlighted le résultat est "solo"
+   * Si seulement la veille n'est pas highlighted le résultat est "first"
+   * Si seulement le lendemain n'est pas highlighted le résultat est "last"
+   * Sinon le résultat est "middle"
+   * @param myDate - la date de la cellule
+   * @param highlighted - un tableau d'objets moment comprenant les dates highlighted par l'utilisateur
+   * @returns Le type d'highlight.
+   */
+  const giveHighlightType = (myDate, highlighted) => {
     var result = "";
     if (highlighted?.contains(myDate)) {
-      result = "middle";
-
       var isFirstDayHighlighted = !highlighted.contains(
         myDate.clone().add(-1, "day")
       );
-      if (isFirstDayHighlighted) result = "first";
 
       var isLastDayHighlighted = !highlighted.contains(
         myDate.clone().add(1, "day")
       );
-      if (isLastDayHighlighted) result = "last";
 
       if (isFirstDayHighlighted && isLastDayHighlighted) result = "solo";
+      else if (isFirstDayHighlighted) result = "first";
+      else if (isLastDayHighlighted) result = "last";
+      else result = "middle";
     }
     return result;
   };
 
-  React.useEffect(() => {
-    getApiData().then((data) => setConges(data));
-  }, []);
-
-  function NbMonthByYear(oneRange, year) {
+  /**
+   * Renvoie le nombre de mois dans la plage qui sont dans l'année
+   * @param range - la plage
+   * @param year - l'année
+   * @returns Le nombre de mois dans la plage qui sont dans l'année.
+   */
+  function NbMonthInYear(range, year) {
     var rangeFullYear = moment.range(
       moment([year, 0, 1]),
       moment([year, 11, 31])
     );
 
-    var result = 0;
+    var intersection = rangeFullYear.intersect(range);
 
-    var rangeYear = rangeFullYear.intersect(oneRange);
-
-    if (!rangeYear) result = rangeFullYear.adjacent(oneRange) && 1;
-    else result = Array.from(rangeYear.by("month")).length;
-    //console.log(result);
-
-    return result;
+    return Array.from(intersection?.by("month"))?.length ?? 0;
   }
 
-  const tooltipTitle = (myDate, conge) => {
-    var result = "";
-
-    if (
-      conge?.abr.includes("CA") ||
-      conge?.abr.includes("RTT") ||
-      conge?.abr.includes("TL")
-    ) {
-      result = "Solde CA : " + calculeSoldeCongesAtDate(myDate, "CA", conges);
-      result +=
-        ", solde RTT : " + calculeSoldeCongesAtDate(myDate, "RTT", conges);
-      result +=
-        ", solde TL : " + calculeSoldeCongesAtDate(myDate, "TL", conges);
-    }
-    return result;
-  };
+  /* Variable permettant d'identifier si la fenêtre choix de date est visible ou pas */
+  const [dateRangeDialogVisible, setDateRangeDialogVisible] =
+    React.useState(false);
 
   return (
     <div>
@@ -226,36 +187,25 @@ export default function Calendrier() {
         Congés
       </Typography>
       <br />
-      <Fab
-        color="primary"
-        size="small"
-        sx={{
-          position: "absolute",
-          top: 5,
-          left: 5,
-        }}
-        onClick={() => {
+      <LeftRightNav
+        onClickLeft={() => {
           setDateDebut(dateDebut.clone().add(-1, "months"));
         }}
-      >
-        <NavigateBeforeIcon />
-      </Fab>
-      <Fab
-        color="primary"
-        size="small"
-        sx={{
-          position: "absolute",
-          top: 5,
-          right: 5,
+        onFastClickLeft={() => {
+          setDateDebut(dateDebut.clone().add(-6, "months"));
         }}
-        onClick={() => {
+        onClickRight={() => {
           setDateDebut(dateDebut.clone().add(1, "months"));
         }}
+        onFastClickRight={() => {
+          setDateDebut(dateDebut.clone().add(6, "months"));
+        }}
+      />
+      <TableContainer
+        component={Paper}
+        style={{ width: "fit-content", align: "center" }}
       >
-        <NavigateNextIcon />
-      </Fab>
-      <TableContainer component={Paper} style={{ width: "fit-content" }}>
-        <Table style={{ borderCollapse: "separate" }}>
+        <Table style={{ borderCollapse: "separate", align: "center" }}>
           <TableBody>
             <TableRow>
               {Array.from(
@@ -269,7 +219,7 @@ export default function Calendrier() {
                     sx={{ ...StyleTableCell.annee }}
                     colSpan={
                       4 *
-                      NbMonthByYear(
+                      NbMonthInYear(
                         moment.range(
                           dateDebut,
                           dateDebut.clone().add(nbMonths, "months")
@@ -277,7 +227,7 @@ export default function Calendrier() {
                         years.year()
                       )
                     }
-                    onClick={() => setOpenDialog(true)}
+                    onClick={() => setDateRangeDialogVisible(true)}
                   >
                     {years.format("YYYY")}
                   </TableCell>
@@ -306,13 +256,6 @@ export default function Calendrier() {
                 ).map((month) => {
                   let myDate = moment([month.year(), month.month(), day + 1]);
 
-                  const TDM = (num) => `${num <= 8 ? "0" : ""}${num + 1}`;
-
-                  let conge = conges?.find(
-                    (item) =>
-                      item.date ===
-                      `${month.year()}-${TDM(month.month())}-${TDM(day)}`
-                  );
                   return (
                     // Numéro du jour
                     <React.Fragment
@@ -322,16 +265,15 @@ export default function Calendrier() {
                         myDate={myDate}
                         onContextMenu={onContextMenu}
                         onClick={onClick}
-                        typeHighlight={typeHighlight(myDate, highlighted)}
+                        typeHighlight={giveHighlightType(myDate, highlighted)}
                       />
 
                       <TableCellCalendrier
                         myDate={myDate}
+                        conges={conges}
                         onContextMenu={onContextMenu}
                         onClick={onClick}
-                        typeHighlight={typeHighlight(myDate, highlighted)}
-                        tooltipTitle={tooltipTitle(myDate, conge)}
-                        conge={conge}
+                        typeHighlight={giveHighlightType(myDate, highlighted)}
                       />
 
                       {/* Vacances scolaires */}
@@ -344,57 +286,19 @@ export default function Calendrier() {
           </TableBody>
         </Table>
       </TableContainer>
-      <Menu
-        keepMounted
+      <MyMenu
         open={activeMenu}
-        onClose={handleDescrClose}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          mousePosMenu.mouseY !== null && mousePosMenu.mouseX !== null
-            ? { top: mousePosMenu.mouseY, left: mousePosMenu.mouseX }
-            : undefined
-        }
-      >
-        {MenuOptions.map((option) => {
-          return (
-            <MenuItem
-              key={option.menu}
-              sx={{ fontSize: "0.8em", lineHeight: "1", width: "100px" }}
-              onClick={(event) => handleMenuItemClick(event, option.abr)}
-            >
-              {option.menu}
-            </MenuItem>
-          );
-        })}
-      </Menu>
-      <Menu
-        keepMounted
-        open={activeSubMenu}
-        onClose={handleDescrClose}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          mousePosSubMenu.mouseY !== null && mousePosMenu.mouseX !== null
-            ? { top: mousePosSubMenu.mouseY, left: mousePosMenu.mouseX + 100 }
-            : undefined
-        }
-      >
-        {SubMenuOptions.map((option) => {
-          return (
-            <MenuItem
-              key={option.menu}
-              sx={{ fontSize: "0.8em", lineHeight: "1" }}
-              onClick={(event) => handleSubMenuItemClick(event, option.duree)}
-            >
-              {option.menu}
-            </MenuItem>
-          );
-        })}
-      </Menu>
-      {openDialog && (
+        mousePos={mousePos}
+        menuOptions={menuOptions}
+        subMenuOptions={subMenuOptions}
+        onClose={() => setActiveMenu(false)}
+        onClick={(event, abr, duree) => onMenuItemClick(event, abr, duree)}
+      />
+      {dateRangeDialogVisible && (
         <DateRangeDialog
           dateDebut={dateDebut}
           handleClose={(result, dateMin) => {
-            setOpenDialog(false);
+            setDateRangeDialogVisible(false);
             if (result) {
               setDateDebut(dateMin);
             }

@@ -3,16 +3,32 @@ import TableCell from "@mui/material/TableCell";
 import Tooltip from "@mui/material/Tooltip";
 import { estFerie } from "./joursFeries";
 import * as StyleTableCell from "./styleTableCell";
+import { calculeSoldeCongesAtDate, giveCongeFromDate } from "./conges";
+import { estDernierJourMois } from "./vacances";
+
+function tooltipTitle(myDate, conges) {
+  var result = "";
+  var conge = giveCongeFromDate(myDate, conges);
+
+  if (
+    conge?.abr.includes("CA") ||
+    conge?.abr.includes("RTT") ||
+    conge?.abr.includes("TL") ||
+    estDernierJourMois(myDate)
+  ) {
+    result = "Solde CA : " + calculeSoldeCongesAtDate(myDate, "CA", conges);
+    result +=
+      ", solde RTT : " + calculeSoldeCongesAtDate(myDate, "RTT", conges);
+    result += ", solde TL : " + calculeSoldeCongesAtDate(myDate, "TL", conges);
+  }
+  return result;
+}
 
 function areEqual(prevProps, nextProps) {
   return (
     prevProps.myDate?.format("DDMMYY") === nextProps.myDate?.format("DDMMYY") &&
-    prevProps.conge?.duree === nextProps.conge?.duree &&
-    prevProps.conge?.abr === nextProps.conge?.abr &&
-    prevProps.colSpan === nextProps.colSpan &&
-    prevProps.demiJournee === nextProps.demiJournee &&
     prevProps.typeHighlight === nextProps.typeHighlight &&
-    prevProps.tooltipTitle === nextProps.tooltipTitle
+    JSON.stringify(prevProps.conges) === JSON.stringify(nextProps.conges)
   );
 }
 
@@ -29,34 +45,33 @@ function getAbr(abr, duree, demiJournee) {
 }
 
 function CellCalendrier(params) {
-  const {
-    myDate,
-    conge,
-    type,
-    colSpan,
-    onContextMenu,
-    onClick,
-    demiJournee,
-    typeHighlight,
-    tooltipTitle,
-  } = params;
+  const { myDate, conges, onContextMenu, onClick, typeHighlight, demiJournee } =
+    params;
 
   //console.log("CellCalendrier " + JSON.stringify(myDate));
+  var conge = giveCongeFromDate(myDate, conges);
   var abr = getAbr(conge?.abr, conge?.duree, demiJournee);
-  var localType = type;
+
+  var type = "";
+  if (!conge) type = "sansConge";
+  else if (conge.duree === "J") type = "journeeConge";
+  else if (conge.duree.includes("M")) type = "demiJourneeConge";
+  else type = "demiJourneeSansConge";
+
+  var colSpan = type.includes("demi") ? 1 : 2;
 
   if (myDate.isValid()) {
-    if (myDate.day() === 0 || myDate.day() === 6) localType = "WE";
-    if (estFerie(myDate)) localType = "ferie";
+    if (myDate.day() === 0 || myDate.day() === 6) type = "WE";
+    if (estFerie(myDate)) type = "ferie";
   }
 
   var couleurConge = StyleTableCell[abr] ?? "";
 
   var styleToApply = myDate.isValid()
-    ? StyleTableCell[localType]
+    ? StyleTableCell[type]
     : StyleTableCell.base;
 
-  if (localType === "journeeConge" || localType === "demiJourneeConge")
+  if (type === "journeeConge" || type === "demiJourneeConge")
     styleToApply = {
       ...styleToApply,
       ...couleurConge,
@@ -92,7 +107,7 @@ function CellCalendrier(params) {
   styleToApply = { ...styleToApply, ...styleHighlight };
 
   return (
-    <Tooltip title={tooltipTitle} placement="right" arrow>
+    <Tooltip title={tooltipTitle(myDate, conges)} placement="right" arrow>
       <TableCell
         colSpan={colSpan}
         sx={{ ...styleToApply }}
@@ -106,39 +121,17 @@ function CellCalendrier(params) {
 }
 
 function TableCellCalendrierForMemo(params) {
-  const { conge } = params;
+  const { myDate, conges } = params;
+
+  var conge = giveCongeFromDate(myDate, conges);
 
   if (!conge || conge?.duree === "J")
-    return (
-      <CellCalendrier
-        {...params}
-        colSpan={2}
-        type={conge ? "journeeConge" : "sansConge"}
-        demiJournee="J"
-      />
-    );
+    return <CellCalendrier {...params} demiJournee="J" />;
   else
     return (
       <>
-        <CellCalendrier
-          {...params}
-          type={
-            conge.duree.includes("AM")
-              ? "demiJourneeConge"
-              : "demiJourneeSansConge"
-          }
-          demiJournee="AM"
-        />
-
-        <CellCalendrier
-          {...params}
-          type={
-            conge.duree.includes("PM")
-              ? "demiJourneeConge"
-              : "demiJourneeSansConge"
-          }
-          demiJournee="PM"
-        />
+        <CellCalendrier {...params} demiJournee="AM" />
+        <CellCalendrier {...params} demiJournee="PM" />
       </>
     );
 }
