@@ -16,7 +16,7 @@ export const formatMoment = (date) => {
   // Permet d'écrire sur le nombre num sur 2 digits
   const TDM = (num) => `${num <= 8 ? "0" : ""}${num + 1}`;
 
-  return `${date.year()}-${TDM(date.month())}-${TDM(date.date()-1)}`;
+  return `${date.year()}-${TDM(date.month())}-${TDM(date.date() - 1)}`;
 };
 
 /**
@@ -199,9 +199,9 @@ export function handleNewConge(abr, duree, conges, highlighted) {
 
       //console.log(data)
       if (!storedAbr) {
-        //deleteApiData([data]);
+        deleteApiData([data]);
       } else {
-        //putApiData([data]);
+        putApiData([data]);
         newConges = [...newConges, data];
       }
     }

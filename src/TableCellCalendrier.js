@@ -54,8 +54,8 @@ function CellCalendrier(params) {
 
   var type = "";
   if (!conge) type = "sansConge";
-  else if (conge.duree === "J") type = "journeeConge";
-  else if (conge.duree.includes("M")) type = "demiJourneeConge";
+  else if (conge?.duree === "J") type = "journeeConge";
+  else if (conge?.duree.includes("M")) type = "demiJourneeConge";
   else type = "demiJourneeSansConge";
 
   var colSpan = type.includes("demi") ? 1 : 2;
@@ -79,7 +79,12 @@ function CellCalendrier(params) {
 
   var styleHighlight;
   if (typeHighlight !== "")
-    styleHighlight = conge?.duree !== "AM" && StyleTableCell.highlightedRight;
+    if (conge?.duree.includes("AM") && demiJournee == "AM")
+      // Pour les journées highlightées :
+      // on met le style hightlightedRight sauf pour le cas particulier
+      // d'une demi-journée de congé le matin uniquement
+      styleHighlight = StyleTableCell.highlighted;
+    else styleHighlight = StyleTableCell.highlightedRight;
 
   switch (typeHighlight) {
     case "first":
