@@ -56,7 +56,7 @@ export default function Calendrier() {
 
   /* Paramètres du menu affiché lors du click droit */
   const menuOptions = [
-    { menu: "Congés", value: "CA" },
+    { menu: "CA", value: "CA" },
     { menu: "RTT", value: "RTT" },
     { menu: "CET", value: "CET" },
     { menu: "Formation", value: "FOR" },

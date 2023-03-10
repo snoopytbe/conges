@@ -115,7 +115,7 @@ const compteCongesPeriode = memoize((abr, conges, date) => {
 });
 
 /**
- * Calcule le nombre de jours de congés restants à une date donnée
+ * Calcule le nombre de jours de congés restants ou utilisés à une date donnée
  * @param date - la date où est calculé le solde
  * @param abr - le type de congé (par exemple "RTT", "CA")
  * @param conges - un tableau d'objets, chaque objet représentant une jour de congés.
@@ -123,10 +123,16 @@ const compteCongesPeriode = memoize((abr, conges, date) => {
  * et le nombre de congés posés
  */
 export const calculeSoldeCongesAtDate = (date, abr, conges) => {
-  return (
-    calculeCapitalConges(date, abr, conges) -
-    compteCongesPeriode(abr, conges, date)
-  );
+  var result;
+
+  if (abr === "CET") {
+    result = compteCongesPeriode(abr, conges, date);
+  } else {
+    result =
+      calculeCapitalConges(date, abr, conges) -
+      compteCongesPeriode(abr, conges, date);
+  }
+  return result; 
 };
 
 export function handleNewConge(abr, duree, conges, highlighted) {

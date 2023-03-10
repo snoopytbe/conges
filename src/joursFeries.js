@@ -69,6 +69,14 @@ export const estWE = (day) => {
   return day.day() === 6 || day.day() === 0;
 };
 
+// A EDF, le lundi 26/12 et le lundi 2/1 sont fériés
+const estFerieEDF = (day) => {
+  return (
+    (day.day() === 1 && day.isSame(moment([day.year(), 11, 26]))) ||
+    day.isSame(moment([day.year(), 0, 2]))
+  );
+};
+
 export const estFerie = memoize((day) => {
   var year = day.year();
 
@@ -83,7 +91,8 @@ export const estFerie = memoize((day) => {
     Assomption(year).isSame(day, "day") ||
     Toussaint(year).isSame(day, "day") ||
     Armistice(year).isSame(day, "day") ||
-    Noel(year).isSame(day, "day")
+    Noel(year).isSame(day, "day") ||
+    estFerieEDF(day)
   );
 });
 
