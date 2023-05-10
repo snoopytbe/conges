@@ -38,7 +38,7 @@ function DoubleRightArrowIcon(props) {
 }
 
 function MyFab(params) {
-  const { children, onClick, position } = params;
+  const { children, onClick, position, myWidth } = params;
   var sxPosition;
   switch (position) {
     case "doubleleft":
@@ -48,10 +48,10 @@ function MyFab(params) {
       sxPosition = { left: 50 };
       break;
     case "doubleright":
-      sxPosition = { right: 50 };
+      sxPosition = { left: myWidth - 100 };
       break;
     case "simpleright":
-      sxPosition = { right: 5 };
+      sxPosition = { left: myWidth - 55 };
       break;
     default:
   }
@@ -73,27 +73,36 @@ function MyFab(params) {
 }
 
 export default function Nav(params) {
-  const { onClickLeft, onFastClickLeft, onClickRight, onFastClickRight } =
-    params;
+  const {
+    myWidth,
+    onClickLeft,
+    onFastClickLeft,
+    onClickRight,
+    onFastClickRight,
+  } = params;
 
   return (
     <>
-      <MyFab position="doubleleft" onClick={onFastClickLeft}>
+      <MyFab position="doubleleft" onClick={onFastClickLeft} myWidth={myWidth}>
         <IconButton aria-label="fastbefore">
           <DoubleLeftArrowIcon htmlColor="#FFFFFF" />
         </IconButton>
       </MyFab>
-      <MyFab position="simpleleft" onClick={onClickLeft}>
+      <MyFab position="simpleleft" onClick={onClickLeft} myWidth={myWidth}>
         <IconButton aria-label="before">
           <SimpleLeftArrowIcon htmlColor="#FFFFFF" />
         </IconButton>
       </MyFab>
-      <MyFab position="doubleright" onClick={onClickRight}>
+      <MyFab position="doubleright" onClick={onClickRight} myWidth={myWidth}>
         <IconButton aria-label="after">
           <SimpleRightArrowIcon htmlColor="#FFFFFF" />
         </IconButton>
       </MyFab>
-      <MyFab position="simpleright" onClick={onFastClickRight}>
+      <MyFab
+        position="simpleright"
+        onClick={onFastClickRight}
+        myWidth={myWidth}
+      >
         <IconButton aria-label="fastafter">
           <DoubleRightArrowIcon htmlColor="#FFFFFF" />
         </IconButton>

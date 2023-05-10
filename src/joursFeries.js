@@ -73,7 +73,7 @@ export const estWE = (day) => {
 const estFerieEDF = (day) => {
   return (
     (day.day() === 1 && day.isSame(moment([day.year(), 11, 26]))) ||
-    day.isSame(moment([day.year(), 0, 2]))
+    (day.day() === 1 && day.isSame(moment([day.year(), 0, 2])))
   );
 };
 

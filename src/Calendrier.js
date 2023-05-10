@@ -36,7 +36,8 @@ const IS_MOBILE = parser?.getDevice()?.type === "mobile";
 export default function Calendrier() {
   /* Le nombre de mois qui doivent être affichés dans le calendrier, en fonction
    * de la largeur de la fenêtre actuelle */
-  const nbMonths = Math.floor(window.innerWidth / 139);
+  const nbMonths = Math.min(6, Math.floor(window.innerWidth / 139));
+  const myWidth = Math.min(6 * 139, window.innerWidth);
 
   //La date de début est égale au minimum entre la moitié du nombre mois
   // affichés
@@ -63,12 +64,10 @@ export default function Calendrier() {
     { menu: "Maladie", value: "MAL" },
     { menu: "Présent", value: "" },
     { menu: "Télétravail", value: "TL" },
-  ];
-
-  const subMenuOptions = [
+    /*{ menu: "divider", value: "-" },
     { menu: "Journée", value: "J" },
     { menu: "Matin", value: "AM" },
-    { menu: "Après-midi", value: "PM" },
+    { menu: "Après-midi", value: "PM" },*/
   ];
 
   const [mousePos, setMousePos] = React.useState({
@@ -78,9 +77,9 @@ export default function Calendrier() {
 
   const [activeMenu, setActiveMenu] = React.useState(false);
 
-  const onMenuItemClick = (event, abr, duree) => {
+  const onMenuItemClick = (event, abr) => {
     event.preventDefault();
-    setConges(handleNewConge(abr, duree, conges, highlighted));
+    setConges(handleNewConge(abr, conges, highlighted));
     setHighlighted(null);
     setActiveMenu(false);
   };
@@ -183,8 +182,8 @@ export default function Calendrier() {
 
   return (
     <div>
-      <Typography variant="h5" align="center">
-        Congés
+      <Typography variant="h5" align="center" sx={{ width: myWidth }}>
+        Congés{myWidth}
       </Typography>
       <br />
       <LeftRightNav
@@ -200,6 +199,7 @@ export default function Calendrier() {
         onFastClickRight={() => {
           setDateDebut(dateDebut.clone().add(6, "months"));
         }}
+        myWidth={myWidth}
       />
       <TableContainer
         component={Paper}
@@ -290,9 +290,8 @@ export default function Calendrier() {
         open={activeMenu}
         mousePos={mousePos}
         menuOptions={menuOptions}
-        subMenuOptions={subMenuOptions}
         onClose={() => setActiveMenu(false)}
-        onClick={(event, abr, duree) => onMenuItemClick(event, abr, duree)}
+        onClick={(event, abr) => onMenuItemClick(event, abr)}
       />
       {dateRangeDialogVisible && (
         <DateRangeDialog

@@ -132,10 +132,10 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
       calculeCapitalConges(date, abr, conges) -
       compteCongesPeriode(abr, conges, date);
   }
-  return result; 
+  return result;
 };
 
-export function handleNewConge(abr, duree, conges, highlighted) {
+export function handleNewConge(abr, conges, highlighted) {
   let newConges = [];
 
   // on va ajouter/modifier avec le PUT tous les jours "highlighted"
@@ -151,9 +151,9 @@ export function handleNewConge(abr, duree, conges, highlighted) {
       let id = prevConge?.id ?? uuidv4();
 
       // On retrouve la duree précédente
-      let prevDuree = prevConge?.duree ?? "";
+      /*let prevDuree = prevConge?.duree ?? "";
 
-      let storedDuree = duree;
+      let storedDuree = "duree";
       let storedAbr = abr;
 
       if (prevDuree === "AM" && duree === "PM") {
@@ -194,17 +194,18 @@ export function handleNewConge(abr, duree, conges, highlighted) {
           storedDuree = "AM";
           storedAbr = prevConge.abr.split(";")[0];
         }
-      }
+      }*/
 
       let data = {
         date: formatMoment(oneHighlighted),
-        abr: storedAbr,
+        abr: abr, //storedAbr,
         id: id,
-        duree: storedDuree,
+        duree: "J", //storedDuree,
       };
 
       //console.log(data)
-      if (!storedAbr) {
+      if (abr == "") {
+        //(!storedAbr) {
         deleteApiData([data]);
       } else {
         putApiData([data]);
