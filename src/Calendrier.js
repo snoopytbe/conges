@@ -11,10 +11,10 @@ import Typography from "@mui/material/Typography";
 import UAParser from "ua-parser-js";
 
 // Local import
-import { getApiData } from "./ApiData";
+import { getApiRangeData } from "./ApiData";
 import * as StyleTableCell from "./styleTableCell";
 import { TableCellVacances } from "./TableCellVacances";
-import { handleNewConge } from "./conges";
+import { handleNewConge, calculeDecompte, formatMoment } from "./conges";
 import DateRangeDialog from "./DateRangeDialog";
 import { TableCellCalendrier } from "./TableCellCalendrier";
 import { TableCellDate } from "./TableCellDate";
@@ -36,8 +36,8 @@ const IS_MOBILE = parser?.getDevice()?.type === "mobile";
 export default function Calendrier() {
   /* Le nombre de mois qui doivent être affichés dans le calendrier, en fonction
    * de la largeur de la fenêtre actuelle */
-  const nbMonths = Math.min(6, Math.floor(window.innerWidth / 139));
-  const myWidth = Math.min(6 * 139, window.innerWidth);
+  const nbMonths = Math.min(12, Math.floor(window.innerWidth / 139));
+  const myWidth = Math.min(12 * 139, window.innerWidth);
 
   //La date de début est égale au minimum entre la moitié du nombre mois
   // affichés
@@ -52,8 +52,11 @@ export default function Calendrier() {
 
   /* Chargement des congés au démarrage */
   React.useEffect(() => {
-    getApiData().then((data) => setConges(data));
-  }, []);
+    getApiRangeData(
+      formatMoment(dateDebut),
+      formatMoment(dateDebut.clone().add(nbMonths + 1, "months"))
+    ).then((data) => setConges(data));
+  }, [dateDebut]);
 
   /* Paramètres du menu affiché lors du click droit */
   const menuOptions = [
@@ -183,7 +186,10 @@ export default function Calendrier() {
   return (
     <div>
       <Typography variant="h5" align="center" sx={{ width: myWidth }}>
-        Congés{myWidth}
+        Congés
+      </Typography>
+      <Typography variant="h6" align="center" sx={{ width: myWidth }}>
+        J-{calculeDecompte(conges)}
       </Typography>
       <br />
       <LeftRightNav

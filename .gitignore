@@ -8,6 +8,7 @@ amplify/backend/.temp
 build/
 dist/
 node_modules/
+node_modules/.cache/
 aws-exports.js
 urlAPI.js
 *DS_Store
@@ -19,4 +20,5 @@ amplify-gradle-config.json
 amplifytools.xcconfig
 .secret-*
 **.sample
+*.pack
 #amplify-do-not-edit-end

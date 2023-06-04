@@ -51,6 +51,24 @@ const calculeCapitalTL = memoize((date, conges) => {
   return Math.ceil(nbJoursTravailles / 2);
 });
 
+// Calcule le nombre de jours travaillés restants avec une date donnée
+export const calculeDecompte = memoize((conges) => {
+  // La période de calcul démarre aujourd'hui
+  var periodeCalcul = moment.range(moment(), moment([2023, 6, 1]));
+
+  // Le nombre de jours travaillés est le nombre de jours ouvrables
+  var nbJoursTravailles = nbJourOuvrables(periodeCalcul);
+
+  // Auquel on déduit le nombre de journées complètes de CA, RTT ou MAL
+  conges.forEach((oneConge) => {
+    if (periodeCalcul.contains(moment(oneConge.date, "YYYY-MM-DD"))) {
+      if ("J".includes(oneConge.duree) && "CA;RTT;MAL".includes(oneConge.abr))
+        nbJoursTravailles -= 1;
+    }
+  });
+  return nbJoursTravailles;
+});
+
 // Calcule le nombre de jour de congés possibles pour une date donnée
 // et un abr donné
 const calculeCapitalAutres = memoize((date, abr) => {
