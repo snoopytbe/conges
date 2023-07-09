@@ -37,7 +37,7 @@ export default function Calendrier() {
   /* Le nombre de mois qui doivent être affichés dans le calendrier, en fonction
    * de la largeur de la fenêtre actuelle */
   const nbMonths = Math.min(12, Math.floor(window.innerWidth / 139));
-  const myWidth = Math.min(12 * 139, window.innerWidth);
+  const myWidth = Math.min(nbMonths * 139, window.innerWidth);
 
   //La date de début est égale au minimum entre la moitié du nombre mois
   // affichés
@@ -52,8 +52,17 @@ export default function Calendrier() {
 
   /* Chargement des congés au démarrage */
   React.useEffect(() => {
+    // On commence à charger les données à la plus petite date nécessaire pour calculer les soldes de congés
+    // C'est soit le début de l'année en cours
+    // Soit le  1/5 qui précèdant
+    var dateDebutData = moment.min(
+      moment([dateDebut.year(), 0, 1]),
+      moment([dateDebut.year() + (dateDebut.month() <= 3 && -1), 4, 1])
+    );
+
+    // On charge les données jusqu'à la fin de l'horizon de temps affiché (dateDebut + nbMonths + 1)
     getApiRangeData(
-      formatMoment(dateDebut),
+      formatMoment(dateDebutData),
       formatMoment(dateDebut.clone().add(nbMonths + 1, "months"))
     ).then((data) => setConges(data));
   }, [dateDebut]);
@@ -62,7 +71,7 @@ export default function Calendrier() {
   const menuOptions = [
     { menu: "CA", value: "CA" },
     { menu: "RTT", value: "RTT" },
-    { menu: "CET", value: "CET" },
+    //{ menu: "CET", value: "CET" },
     { menu: "Formation", value: "FOR" },
     { menu: "Maladie", value: "MAL" },
     { menu: "Présent", value: "" },

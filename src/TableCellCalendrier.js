@@ -14,15 +14,15 @@ function tooltipTitle(myDate, conges) {
     conge?.abr.includes("CA") ||
     conge?.abr.includes("RTT") ||
     conge?.abr.includes("TL") ||
-    conge?.abr.includes("CET") ||
+    //conge?.abr.includes("CET") ||
     estDernierJourMois(myDate)
   ) {
     result = "Solde CA : " + calculeSoldeCongesAtDate(myDate, "CA", conges);
     result +=
       ", solde RTT : " + calculeSoldeCongesAtDate(myDate, "RTT", conges);
     result += ", solde TL : " + calculeSoldeCongesAtDate(myDate, "TL", conges);
-    result +=
-      ", CET utilisés : " + calculeSoldeCongesAtDate(myDate, "CET", conges);
+    //result +=
+    //  ", CET utilisés : " + calculeSoldeCongesAtDate(myDate, "CET", conges);
   }
   return result;
 }
