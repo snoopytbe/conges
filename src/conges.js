@@ -110,7 +110,7 @@ export const calculeDecompte = memoize((conges) => {
 
 // Calcule le nombre de jour de congés possibles pour une date donnée
 // et un abr donné
-const calculeCapitalAutres = memoize((date, abr, conges) => {
+const calculeCapitalAutres = memoize((date, abr) => {
   // Si abr est CA alors le résultat 27
   if (abr === "CA") return 27;
 
@@ -138,25 +138,13 @@ const calculeCapitalAutres = memoize((date, abr, conges) => {
       // Il dépend donc du nombre de jours ouvrables et du nombre de jours de CA posés
       // Cas particulier de l'année 2023 où le forfait de référence est de 104.5 sur la période juillet-décembre 2023
       if (date.year() === 2023) {
-        periodeCalcul = moment.range(
-          moment([date.year(), 6, 1]),
-          moment([date.year(), 11, 31])
-        );
-        return (
-          nbJourOuvrables(periodeCalcul) -
-          compteCongesPeriode("CA", conges, periodeCalcul) -
-          104.5
-        );
+        return 7;
       } else {
         periodeCalcul = moment.range(
           moment([date.year(), 0, 1]),
           moment([date.year(), 11, 31])
         );
-        return (
-          nbJourOuvrables(periodeCalcul) -
-          compteCongesPeriode("CA", conges, periodeCalcul) -
-          209
-        );
+        return nbJourOuvrables(periodeCalcul) - 27 - 209;
       }
     }
   }
@@ -175,9 +163,9 @@ const calculeCapitalConges = (date, abr, conges) => {
     case "TL":
       return calculeCapitalTL(date, conges);
     case "CA":
-      return calculeCapitalAutres(date, abr, conges);
+      return calculeCapitalAutres(date, abr);
     case "RTT":
-      return calculeCapitalAutres(date, abr, conges);
+      return calculeCapitalAutres(date, abr);
   }
 };
 
@@ -195,6 +183,11 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
   // La période de décompte débute le 1/5 qui précède "date"
   var debutPeriode = moment([date.year() + (date.month() <= 3 && -1), 4, 1]);
 
+  if (abr === "RTT" && date.isAfter(moment([2023, 5, 30]))) {
+    if (date.year() === 2023) debutPeriode = moment([2023, 6, 1]);
+    else debutPeriode = moment([date.year(), 0, 1]);
+  }
+
   // Pour un TL :
   // avant le 1er juillet 2023, à EDF, la période de décompte démarre le début du mois de "date"
   // Pour l'année 2023 à RTE la période de décompte démarre le 1er juillet
@@ -210,9 +203,9 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
   //if (abr === "CET") {
   //  result = compteCongesPeriode(abr, conges, periodeDecompte);
   //} else {
-    result =
-      calculeCapitalConges(date, abr, conges) -
-      compteCongesPeriode(abr, conges, periodeDecompte);
+  result =
+    calculeCapitalConges(date, abr, conges) -
+    compteCongesPeriode(abr, conges, periodeDecompte);
   //}
   return result;
 };

@@ -14,7 +14,7 @@ import UAParser from "ua-parser-js";
 import { getApiRangeData } from "./ApiData";
 import * as StyleTableCell from "./styleTableCell";
 import { TableCellVacances } from "./TableCellVacances";
-import { handleNewConge, calculeDecompte, formatMoment } from "./conges";
+import { handleNewConge, formatMoment } from "./conges";
 import DateRangeDialog from "./DateRangeDialog";
 import { TableCellCalendrier } from "./TableCellCalendrier";
 import { TableCellDate } from "./TableCellDate";
@@ -196,9 +196,6 @@ export default function Calendrier() {
     <div>
       <Typography variant="h5" align="center" sx={{ width: myWidth }}>
         Congés
-      </Typography>
-      <Typography variant="h6" align="center" sx={{ width: myWidth }}>
-        J-{calculeDecompte(conges)}
       </Typography>
       <br />
       <LeftRightNav
