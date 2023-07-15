@@ -1,5 +1,8 @@
 import React from "react";
 
+// Import du spinner d'attente
+import DotLoader from "react-spinners/DotLoader";
+
 // Import from Material UI
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -50,6 +53,8 @@ export default function Calendrier() {
   /* Variable où sont stockés les congés */
   const [conges, setConges] = React.useState([]);
 
+  const [loading, setLoading] = React.useState(true);
+
   /* Chargement des congés au démarrage */
   React.useEffect(() => {
     // On commence à charger les données à la plus petite date nécessaire pour calculer les soldes de congés
@@ -64,7 +69,10 @@ export default function Calendrier() {
     getApiRangeData(
       formatMoment(dateDebutData),
       formatMoment(dateDebut.clone().add(nbMonths + 1, "months"))
-    ).then((data) => setConges(data));
+    ).then((data) => {
+      setConges(data);
+      setLoading(false);
+    });
   }, [dateDebut]);
 
   /* Paramètres du menu affiché lors du click droit */
@@ -194,110 +202,149 @@ export default function Calendrier() {
 
   return (
     <div>
-      <Typography variant="h5" align="center" sx={{ width: myWidth }}>
-        Congés
-      </Typography>
-      <br />
-      <LeftRightNav
-        onClickLeft={() => {
-          setDateDebut(dateDebut.clone().add(-1, "months"));
-        }}
-        onFastClickLeft={() => {
-          setDateDebut(dateDebut.clone().add(-6, "months"));
-        }}
-        onClickRight={() => {
-          setDateDebut(dateDebut.clone().add(1, "months"));
-        }}
-        onFastClickRight={() => {
-          setDateDebut(dateDebut.clone().add(6, "months"));
-        }}
-        myWidth={myWidth}
-      />
-      <TableContainer
-        component={Paper}
-        style={{ width: "fit-content", align: "center" }}
-      >
-        <Table style={{ borderCollapse: "separate", align: "center" }}>
-          <TableBody>
-            <TableRow>
-              {Array.from(
-                moment
-                  .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
-                  .snapTo("year")
-                  .by("year")
-              ).map((years) => (
-                <React.Fragment key={years.format("YYYY")}>
-                  <TableCell
-                    sx={{ ...StyleTableCell.annee }}
-                    colSpan={
-                      4 *
-                      NbMonthInYear(
-                        moment.range(
+      {loading && (
+        <>
+          <Typography variant="h1"><br/></Typography>
+          <DotLoader
+            color="#0000FF"
+            loading={loading}
+            size="35"
+            cssOverride={{ display: "block", margin: "0 auto" }}
+          />
+          <Typography variant="h6" align="center" sx={{ width: myWidth }}>
+            Chargement en cours
+          </Typography>
+        </>
+      )}
+      {!loading && (
+        <>
+          <Typography variant="h5" align="center" sx={{ width: myWidth }}>
+            Congés
+          </Typography>
+          <br />
+          <LeftRightNav
+            onClickLeft={() => {
+              setDateDebut(dateDebut.clone().add(-1, "months"));
+            }}
+            onFastClickLeft={() => {
+              setDateDebut(dateDebut.clone().add(-6, "months"));
+            }}
+            onClickRight={() => {
+              setDateDebut(dateDebut.clone().add(1, "months"));
+            }}
+            onFastClickRight={() => {
+              setDateDebut(dateDebut.clone().add(6, "months"));
+            }}
+            myWidth={myWidth}
+          />
+          <TableContainer
+            component={Paper}
+            style={{ width: "fit-content", align: "center" }}
+          >
+            <Table style={{ borderCollapse: "separate", align: "center" }}>
+              <TableBody>
+                <TableRow>
+                  {Array.from(
+                    moment
+                      .range(
+                        dateDebut,
+                        dateDebut.clone().add(nbMonths, "months")
+                      )
+                      .snapTo("year")
+                      .by("year")
+                  ).map((years) => (
+                    <React.Fragment key={years.format("YYYY")}>
+                      <TableCell
+                        sx={{ ...StyleTableCell.annee }}
+                        colSpan={
+                          4 *
+                          NbMonthInYear(
+                            moment.range(
+                              dateDebut,
+                              dateDebut.clone().add(nbMonths, "months")
+                            ),
+                            years.year()
+                          )
+                        }
+                        onClick={() => setDateRangeDialogVisible(true)}
+                      >
+                        {years.format("YYYY")}
+                      </TableCell>
+                    </React.Fragment>
+                  ))}
+                </TableRow>
+                <TableRow>
+                  {Array.from(
+                    moment
+                      .range(
+                        dateDebut,
+                        dateDebut.clone().add(nbMonths, "months")
+                      )
+                      .by("month")
+                  ).map((month) => (
+                    <React.Fragment key={month.format("YYYY-M")}>
+                      <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
+                        {month.locale("fr-FR").format("MMMM")}
+                      </TableCell>
+                    </React.Fragment>
+                  ))}
+                </TableRow>
+                {Array.from(Array(31).keys()).map((day) => (
+                  <TableRow key={"ligne" + day}>
+                    {Array.from(
+                      moment
+                        .range(
                           dateDebut,
                           dateDebut.clone().add(nbMonths, "months")
-                        ),
-                        years.year()
-                      )
-                    }
-                    onClick={() => setDateRangeDialogVisible(true)}
-                  >
-                    {years.format("YYYY")}
-                  </TableCell>
-                </React.Fragment>
-              ))}
-            </TableRow>
-            <TableRow>
-              {Array.from(
-                moment
-                  .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
-                  .by("month")
-              ).map((month) => (
-                <React.Fragment key={month.format("YYYY-M")}>
-                  <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
-                    {month.locale("fr-FR").format("MMMM")}
-                  </TableCell>
-                </React.Fragment>
-              ))}
-            </TableRow>
-            {Array.from(Array(31).keys()).map((day) => (
-              <TableRow key={"ligne" + day}>
-                {Array.from(
-                  moment
-                    .range(dateDebut, dateDebut.clone().add(nbMonths, "months"))
-                    .by("month")
-                ).map((month) => {
-                  let myDate = moment([month.year(), month.month(), day + 1]);
+                        )
+                        .by("month")
+                    ).map((month) => {
+                      let myDate = moment([
+                        month.year(),
+                        month.month(),
+                        day + 1,
+                      ]);
 
-                  return (
-                    // Numéro du jour
-                    <React.Fragment
-                      key={"ligne" + day + "i" + month.year() + month.month()}
-                    >
-                      <TableCellDate
-                        myDate={myDate}
-                        onContextMenu={onContextMenu}
-                        onClick={onClick}
-                        typeHighlight={giveHighlightType(myDate, highlighted)}
-                      />
+                      return (
+                        // Numéro du jour
+                        <React.Fragment
+                          key={
+                            "ligne" + day + "i" + month.year() + month.month()
+                          }
+                        >
+                          <TableCellDate
+                            myDate={myDate}
+                            onContextMenu={onContextMenu}
+                            onClick={onClick}
+                            typeHighlight={giveHighlightType(
+                              myDate,
+                              highlighted
+                            )}
+                          />
 
-                      <TableCellCalendrier
-                        myDate={myDate}
-                        conges={conges}
-                        onContextMenu={onContextMenu}
-                        onClick={onClick}
-                        typeHighlight={giveHighlightType(myDate, highlighted)}
-                      />
+                          <TableCellCalendrier
+                            myDate={myDate}
+                            conges={conges}
+                            onContextMenu={onContextMenu}
+                            onClick={onClick}
+                            typeHighlight={giveHighlightType(
+                              myDate,
+                              highlighted
+                            )}
+                          />
 
-                      {/* Vacances scolaires */}
-                      <TableCellVacances myDate={myDate} />
-                    </React.Fragment>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                          {/* Vacances scolaires */}
+                          <TableCellVacances myDate={myDate} />
+                        </React.Fragment>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
       <MyMenu
         open={activeMenu}
         mousePos={mousePos}
