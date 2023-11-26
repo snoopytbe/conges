@@ -94,7 +94,7 @@ function estFevrier(dt, zone) {
 function debutVacancesPaques(annee, zone) {
   //Démarre 8 semaines après le début des vacances de février avant 2022 et 9 semaines à partir de 2022
   return debutVacancesFevrier(annee, zone).add(
-    7 * 8 + (annee >= 2022 && 7),
+    7 * 8 + ((annee == 2022 || annee == 2023) && 7),
     "days"
   );
 }

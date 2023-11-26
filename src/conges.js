@@ -93,7 +93,7 @@ const calculeCapitalRTT = memoize((date) => {
     // Période RTE
     // La période de calcul est l'année civile
     // Cas particulier de l'année 2023
-    if (date.year() === 2023) return 7;
+    if (date.year() === 2023) return 8;
 
     periodeCalcul = moment.range(
       moment([date.year(), 0, 1]),
