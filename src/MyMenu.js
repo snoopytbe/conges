@@ -34,7 +34,24 @@ const PersonnalizedMenu = (params) => {
 };
 
 export default function MyMenu(params) {
-  const { open, mousePos, menuOptions, onClick, onClose } = params;
+  const { open, mousePos, menuOptions, subMenuOptions, onClick, onClose } =
+    params;
+
+  const [abr, setAbr] = React.useState("");
+
+  const handleMenuItemClick = (event, abr) => {
+    event.preventDefault();
+    setAnchorPosition({
+      left: mousePos.mouseX + 100,
+      top: event.clientY - 4,
+    });
+    setActiveSubMenu(true);
+    setAbr(abr);
+  };
+
+  const [activeSubMenu, setActiveSubMenu] = React.useState(false);
+
+  const [anchorPosition, setAnchorPosition] = React.useState();
 
   return (
     <div>
@@ -44,7 +61,18 @@ export default function MyMenu(params) {
         anchorPosition={{ top: mousePos.mouseY, left: mousePos.mouseX }}
         menuOptions={menuOptions}
         width="100px"
-        onClick={(event, value) => onClick(event, value)}
+        onClick={(event, value) => handleMenuItemClick(event, value)}
+      />
+
+      <PersonnalizedMenu
+        open={activeSubMenu}
+        onClose={onClose}
+        anchorPosition={anchorPosition}
+        menuOptions={subMenuOptions}
+        onClick={(event, value) => {
+          setActiveSubMenu(false);
+          onClick(event, abr, value);
+        }}
       />
     </div>
   );

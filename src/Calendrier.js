@@ -24,6 +24,7 @@ import { TableCellDate } from "./TableCellDate";
 //import { useWindowWidth } from "./useWindowWidth";
 import LeftRightNav from "./LeftRightNav";
 import MyMenu from "./MyMenu";
+//import CongeCreationDialog from "./CongeCreationDialog";
 
 // Moment.js + moment-range
 import Moment from "moment";
@@ -62,7 +63,7 @@ export default function Calendrier() {
     // Soit le  1/5 qui précèdant
     var dateDebutData = moment.min(
       moment([dateDebut.year(), 0, 1]),
-      moment([dateDebut.year() + (dateDebut.month() <= 3 && -1), 4, 1])
+      moment([dateDebut.year() - 1 + (dateDebut.month() <= 3 && -1), 4, 1])
     );
 
     // On charge les données jusqu'à la fin de l'horizon de temps affiché (dateDebut + nbMonths + 1)
@@ -90,6 +91,12 @@ export default function Calendrier() {
     { menu: "Après-midi", value: "PM" },*/
   ];
 
+  const subMenuOptions = [
+    { menu: "Journée", value: "J" },
+    { menu: "Matin", value: "AM" },
+    { menu: "Après-midi", value: "PM" },
+  ];
+
   const [mousePos, setMousePos] = React.useState({
     mouseX: null,
     mouseY: null,
@@ -97,9 +104,9 @@ export default function Calendrier() {
 
   const [activeMenu, setActiveMenu] = React.useState(false);
 
-  const onMenuItemClick = (event, abr) => {
+  const onMenuItemClick = (event, abr, duree) => {
     event.preventDefault();
-    setConges(handleNewConge(abr, conges, highlighted));
+    setConges(handleNewConge(abr, duree, conges, highlighted));
     setHighlighted(null);
     setActiveMenu(false);
   };
@@ -204,14 +211,16 @@ export default function Calendrier() {
     <div>
       {loading && (
         <>
-          <Typography variant="h1"><br/></Typography>
+          <Typography variant="h1">
+            <br />
+          </Typography>
           <DotLoader
             color="#0000FF"
             loading={loading}
             size="35"
             cssOverride={{ display: "block", margin: "0 auto" }}
           />
-          <Typography variant="h6" align="center" sx={{ width: myWidth }}>
+          <Typography variant="h6" align="center">
             Chargement en cours
           </Typography>
         </>
@@ -349,8 +358,9 @@ export default function Calendrier() {
         open={activeMenu}
         mousePos={mousePos}
         menuOptions={menuOptions}
+        subMenuOptions={subMenuOptions}
         onClose={() => setActiveMenu(false)}
-        onClick={(event, abr) => onMenuItemClick(event, abr)}
+        onClick={(event, abr, duree) => onMenuItemClick(event, abr, duree)}
       />
       {dateRangeDialogVisible && (
         <DateRangeDialog

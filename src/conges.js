@@ -47,8 +47,8 @@ const compteCongesPeriode = memoize((abr, conges, periodeDecompte) => {
   conges.forEach((oneConge) => {
     if (periodeDecompte.contains(moment(oneConge.date, "yyyy-MM-DD")))
       if (oneConge.abr.includes(abr)) {
-        // On décompte 1 journée pour les durées égales à J et les TL
-        if (oneConge.duree === "J" || abr === "TL") result += 1;
+        // On décompte 1 journée pour les durées égales à J
+        if (oneConge.duree === "J") result += 1;
         // Et une demi-journée sinon
         else result += 0.5;
       }
@@ -111,12 +111,24 @@ const calculeCapitalRTT = memoize((date) => {
  * @returns La fonction réoriente vers la bonne fonction de calcul en fonction
  * du type de congés
  */
-const calculeCapitalConges = (date, abr) => {
+const calculeCapitalConges = (date, abr, conges) => {
   switch (abr) {
     case "TL":
       return calculeCapitalTL(date.year());
     case "CA":
-      return 27;
+      var last30avril = moment([
+        date.year() + (date.month() <= 3 && -1),
+        3,
+        30,
+      ]);
+      var beforeLast1erMai = moment(last30avril)
+        .subtract(1, "years")
+        .add(1, "days");
+      var lastCAperiod = moment.range(beforeLast1erMai, last30avril);
+      var CapitalRestantAnneePrecedente =
+        27 - compteCongesPeriode("CA", conges, lastCAperiod);
+      if (last30avril.year() <= 2018) CapitalRestantAnneePrecedente = 0;
+      return 27 + CapitalRestantAnneePrecedente;
     case "RTT":
       return calculeCapitalRTT(date);
   }
@@ -163,7 +175,7 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
   var periodeDecompte = moment.range(debutPeriode, date);
 
   return (
-    calculeCapitalConges(date, abr) -
+    calculeCapitalConges(date, abr, conges) -
     compteCongesPeriode(abr, conges, periodeDecompte)
   );
 };
@@ -173,11 +185,12 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
  * sélectionnés et de l'abr choisie
  * et retourne le nouveau tableau conges
  * @param abr - le type de congé (par exemple "RTT", "CA")
- * @param conges - un tableau d'objets, chaque objet représentant une jour de congés.
+ * @param duree - la durée du congé ("AM", "PM", "AM;PM")
+ * @param conges - un tableau d'objets, chaque objet représentant un jour de congés.
  * @param selected - jours de congés sélectionnés
  * @return nouveau tableau congés
  */
-export function handleNewConge(abr, conges, selected) {
+export function handleNewConge(abr, duree, conges, selected) {
   // la variable newConges contient la nouvelle valeur du tableau conges
   let newConges = [];
 
@@ -193,12 +206,58 @@ export function handleNewConge(abr, conges, selected) {
       // On récupère l'id en le créant s'il n'existe pas
       let id = prevConge?.id ?? uuidv4();
 
+      // On retrouve la duree précédente
+      let prevDuree = prevConge?.duree ?? "";
+
+      let storedDuree = duree;
+      let storedAbr = abr;
+
+      if (prevDuree === "AM" && duree === "PM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = prevConge.abr + ";" + abr;
+        } else {
+          storedDuree = prevDuree;
+          storedAbr = prevConge.abr;
+        }
+      }
+
+      if (prevDuree === "PM" && duree === "AM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = abr + ";" + prevConge.abr;
+        } else {
+          storedDuree = prevDuree;
+          storedAbr = prevConge.abr;
+        }
+      }
+
+      if (prevDuree === "AM;PM" && duree === "AM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = abr + ";" + prevConge.abr.split(";")[1];
+        } else {
+          storedDuree = "PM";
+          storedAbr = prevConge.abr.split(";")[1];
+        }
+      }
+
+      if (prevDuree === "AM;PM" && duree === "PM") {
+        if (abr !== "") {
+          storedDuree = "AM;PM";
+          storedAbr = prevConge.abr.split(";")[0] + ";" + abr;
+        } else {
+          storedDuree = "AM";
+          storedAbr = prevConge.abr.split(";")[0];
+        }
+      }
+
       // On créé la nouvelle donnée à ajouter/supprimer dans la base
       let data = {
         date: formatMoment(itemSelected),
-        abr: abr,
+        abr: storedAbr,
         id: id,
-        duree: "J",
+        duree: storedDuree,
       };
 
       if (abr == "") {
@@ -212,6 +271,7 @@ export function handleNewConge(abr, conges, selected) {
   });
 
   //on complète avec les jours présents dans "conges" qui n'étaient pas selected
+
   conges?.forEach((oneConge) => {
     if (!selected?.contains(moment(oneConge.date)))
       newConges = [...newConges, oneConge];

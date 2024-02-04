@@ -17,7 +17,7 @@ export default function MyDatePicker(props) {
       <DatePicker
         id={'date-picker-dialog' + name}
         label={label}
-        views={['month', 'year']}
+        views={['month','year']}
         value={value}
         okLabel="Valider"
         cancelLabel="Annuler"
