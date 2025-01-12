@@ -11,6 +11,7 @@
     "@mui/lab": "5.0.0-alpha.71",
     "@mui/material": "5.4.4",
     "@types/react": "17.0.21",
+    "aws-amplify": "^6.0.13",
     "axios": "0.25.0",
     "date-fns": "2.28.0",
     "dayjs": "1.10.8",

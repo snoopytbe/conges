@@ -17,7 +17,8 @@ import UAParser from "ua-parser-js";
 import { getApiRangeData } from "./ApiData";
 import * as StyleTableCell from "./styleTableCell";
 import { TableCellVacances } from "./TableCellVacances";
-import { handleNewConge, formatMoment } from "./conges";
+import TableCellMois from "./TableCellMois";
+import { modifieConges, formatMoment } from "./conges";
 import DateRangeDialog from "./DateRangeDialog";
 import { TableCellCalendrier } from "./TableCellCalendrier";
 import { TableCellDate } from "./TableCellDate";
@@ -31,6 +32,7 @@ import Moment from "moment";
 import { extendMoment } from "moment-range";
 const moment = extendMoment(Moment);
 import "moment/min/locales.min";
+import { precedent1ermai, prochain30avril } from "./vacances";
 moment.locale("fr-FR");
 
 // Permet de savoir si le site est accédé depuis un mobile
@@ -51,7 +53,6 @@ export default function Calendrier() {
       .date(1)
   );
 
-  /* Variable où sont stockés les congés */
   const [conges, setConges] = React.useState([]);
 
   const [loading, setLoading] = React.useState(true);
@@ -60,16 +61,21 @@ export default function Calendrier() {
   React.useEffect(() => {
     // On commence à charger les données à la plus petite date nécessaire pour calculer les soldes de congés
     // C'est soit le début de l'année en cours
-    // Soit le  1/5 qui précèdant
+    // Soit le  1/5 qui précéde
     var dateDebutData = moment.min(
       moment([dateDebut.year(), 0, 1]),
-      moment([dateDebut.year() - 1 + (dateDebut.month() <= 3 && -1), 4, 1])
+      precedent1ermai(dateDebut)
     );
 
-    // On charge les données jusqu'à la fin de l'horizon de temps affiché (dateDebut + nbMonths + 1)
+    // On charge les données à la plus grande date nécessaire pour calculer les soldes de congés
+    // C'est le prochain 30 avril qui suit a fin de l'horizon de temps affiché (dateDebut + nbMonths + 1)
+    var dateFinData = prochain30avril(
+      dateDebut.clone().add(nbMonths + 1, "months")
+    );
+
     getApiRangeData(
       formatMoment(dateDebutData),
-      formatMoment(dateDebut.clone().add(nbMonths + 1, "months"))
+      formatMoment(dateFinData)
     ).then((data) => {
       setConges(data);
       setLoading(false);
@@ -80,15 +86,11 @@ export default function Calendrier() {
   const menuOptions = [
     { menu: "CA", value: "CA" },
     { menu: "RTT", value: "RTT" },
-    //{ menu: "CET", value: "CET" },
+    { menu: "Déplacement", value: "DEP" },
     { menu: "Formation", value: "FOR" },
     { menu: "Maladie", value: "MAL" },
     { menu: "Présent", value: "" },
     { menu: "Télétravail", value: "TL" },
-    /*{ menu: "divider", value: "-" },
-    { menu: "Journée", value: "J" },
-    { menu: "Matin", value: "AM" },
-    { menu: "Après-midi", value: "PM" },*/
   ];
 
   const subMenuOptions = [
@@ -106,7 +108,7 @@ export default function Calendrier() {
 
   const onMenuItemClick = (event, abr, duree) => {
     event.preventDefault();
-    setConges(handleNewConge(abr, duree, conges, highlighted));
+    setConges(modifieConges(abr, duree, highlighted, conges));
     setHighlighted(null);
     setActiveMenu(false);
   };
@@ -217,7 +219,7 @@ export default function Calendrier() {
           <DotLoader
             color="#0000FF"
             loading={loading}
-            size="35"
+            size="35px"
             cssOverride={{ display: "block", margin: "0 auto" }}
           />
           <Typography variant="h6" align="center">
@@ -227,9 +229,6 @@ export default function Calendrier() {
       )}
       {!loading && (
         <>
-          <Typography variant="h5" align="center" sx={{ width: myWidth }}>
-            Congés
-          </Typography>
           <br />
           <LeftRightNav
             onClickLeft={() => {
@@ -252,6 +251,13 @@ export default function Calendrier() {
           >
             <Table style={{ borderCollapse: "separate", align: "center" }}>
               <TableBody>
+                <TableRow>
+                  <TableCell align="center" colSpan={4 * nbMonths}>
+                    <Typography variant="h5" align="center">
+                      Congés
+                    </Typography>
+                  </TableCell>
+                </TableRow>
                 <TableRow>
                   {Array.from(
                     moment
@@ -292,9 +298,11 @@ export default function Calendrier() {
                       .by("month")
                   ).map((month) => (
                     <React.Fragment key={month.format("YYYY-M")}>
-                      <TableCell sx={{ ...StyleTableCell.mois }} colSpan={4}>
-                        {month.locale("fr-FR").format("MMMM")}
-                      </TableCell>
+                      <TableCellMois
+                        month={month}
+                        conges={conges}
+                        onContextMenu={onContextMenu}
+                      />
                     </React.Fragment>
                   ))}
                 </TableRow>

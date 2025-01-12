@@ -3,6 +3,7 @@ import { nbJourOuvrables, estFerie, estWE } from "./joursFeries";
 import { putApiData, deleteApiData } from "./ApiData";
 import { memoize } from "./memoize";
 import { uuidv4 } from "./uuid";
+import { precedent1ermai, precedent30avril, prochain30avril } from "./vacances";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
 const moment = extendMoment(Moment);
@@ -40,7 +41,7 @@ export const giveCongeFromDate = memoize((date, conges) => {
  * @param periodeDecompte - période de temps sur laquelle le décompte est réalisé
  * @return nombre de jours
  */
-const compteCongesPeriode = memoize((abr, conges, periodeDecompte) => {
+export const compteCongesPeriode = memoize((abr, conges, periodeDecompte) => {
   var result = 0;
 
   // On compte le nombre de jours avec abr
@@ -108,26 +109,21 @@ const calculeCapitalRTT = memoize((date) => {
  * @param date - la date où est calculé le solde
  * @param abr - le type de congé (par exemple "RTT", "CA", "TL")
  * @param conges - un tableau d'objets, chaque objet représentant une jour de congés.
- * @returns La fonction réoriente vers la bonne fonction de calcul en fonction
- * du type de congés
+ * @returns La fonction retourne nombre de jours de nombre de congés possibles
  */
 const calculeCapitalConges = (date, abr, conges) => {
   switch (abr) {
     case "TL":
       return calculeCapitalTL(date.year());
     case "CA":
-      var last30avril = moment([
-        date.year() + (date.month() <= 3 && -1),
-        3,
-        30,
-      ]);
-      var beforeLast1erMai = moment(last30avril)
-        .subtract(1, "years")
-        .add(1, "days");
-      var lastCAperiod = moment.range(beforeLast1erMai, last30avril);
+      var lastCAperiod = moment.range(
+        precedent1ermai(date).add(-1, "year"),
+        precedent30avril(date)
+      );
       var CapitalRestantAnneePrecedente =
         27 - compteCongesPeriode("CA", conges, lastCAperiod);
-      if (last30avril.year() <= 2018) CapitalRestantAnneePrecedente = 0;
+      if (precedent30avril(date, 4).year() <= 2018)
+        CapitalRestantAnneePrecedente = 0;
       return 27 + CapitalRestantAnneePrecedente;
     case "RTT":
       return calculeCapitalRTT(date);
@@ -143,6 +139,7 @@ const calculeCapitalConges = (date, abr, conges) => {
  * et le nombre de congés posés
  */
 export const calculeSoldeCongesAtDate = (date, abr, conges) => {
+  // Date de début de la période de congés
   var debutPeriode;
 
   switch (abr) {
@@ -152,10 +149,11 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
       // Pour l'année 2023 à RTE la période de décompte démarre le 1er juillet
       // Après 2023 la période début le 1er janvier
       if (date.isBefore(moment([2023, 6, 1])))
-        debutPeriode = moment([date.year() + (date.month() <= 3 && -1), 4, 1]);
+        debutPeriode = precedent1ermai(date);
       else if (date.year() === 2023) debutPeriode = moment([2023, 6, 1]);
       else debutPeriode = moment([date.year(), 0, 1]);
       break;
+
     case "TL":
       // Pour un TL :
       // avant le 1er juillet 2023, à EDF, la période de décompte démarre le début du mois de "date"
@@ -166,9 +164,10 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
       else if (date.year() === 2023) debutPeriode = moment([2023, 6, 1]);
       else debutPeriode = moment([date.year(), 0, 1]);
       break;
+
     case "CA":
       // Pour un CA la période débute le 1er mai qui précède date
-      debutPeriode = moment([date.year() + (date.month() <= 3 && -1), 4, 1]);
+      debutPeriode = precedent1ermai(date);
   }
 
   // La période de décompte se termine à "date"
@@ -187,20 +186,20 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
  * @param abr - le type de congé (par exemple "RTT", "CA")
  * @param duree - la durée du congé ("AM", "PM", "AM;PM")
  * @param conges - un tableau d'objets, chaque objet représentant un jour de congés.
- * @param selected - jours de congés sélectionnés
+ * @param joursSelectionnes - jours de congés sélectionnés
  * @return nouveau tableau congés
  */
-export function handleNewConge(abr, duree, conges, selected) {
+export function modifieConges(abr, duree, joursSelectionnes, conges) {
   // la variable newConges contient la nouvelle valeur du tableau conges
   let newConges = [];
 
-  // on va ajouter/modifier tous les jours "selected" en base de donnée
-  Array.from(selected.by("day")).forEach((itemSelected) => {
+  // on va ajouter/modifier tous les jours "joursSelectionnes" en base de donnée
+  Array.from(joursSelectionnes.by("day")).forEach((itemjoursSelectionnes) => {
     // On n'ajoute en base que les conges sur des jours qui ne sont ni fériés, ni we
-    if (!estFerie(itemSelected) && !estWE(itemSelected)) {
+    if (!estFerie(itemjoursSelectionnes) && !estWE(itemjoursSelectionnes)) {
       // On commence par chercher s'il existe déjà une donnée à cette date
       let prevConge = conges.find((item) =>
-        moment(item.date).isSame(itemSelected, "day")
+        moment(item.date).isSame(itemjoursSelectionnes, "day")
       );
 
       // On récupère l'id en le créant s'il n'existe pas
@@ -254,7 +253,7 @@ export function handleNewConge(abr, duree, conges, selected) {
 
       // On créé la nouvelle donnée à ajouter/supprimer dans la base
       let data = {
-        date: formatMoment(itemSelected),
+        date: formatMoment(itemjoursSelectionnes),
         abr: storedAbr,
         id: id,
         duree: storedDuree,
@@ -270,10 +269,10 @@ export function handleNewConge(abr, duree, conges, selected) {
     }
   });
 
-  //on complète avec les jours présents dans "conges" qui n'étaient pas selected
+  //on complète avec les jours présents dans "conges" qui n'étaient pas joursSelectionnes
 
   conges?.forEach((oneConge) => {
-    if (!selected?.contains(moment(oneConge.date)))
+    if (!joursSelectionnes?.contains(moment(oneConge.date)))
       newConges = [...newConges, oneConge];
   });
 

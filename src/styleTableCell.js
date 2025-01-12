@@ -1,8 +1,8 @@
 const couleurAnnee = "#070722ff";
 const couleurMois = "#131347ff";
 const couleurPolice = "#f8f4ffff";
-const couleurDimanche = "#aad5f4";
-const couleurJourFerie = "#33cc66";
+const couleurDimanche = "#E0E0E0";
+const couleurJourFerie = "#A2A2A2";
 const couleurVacances = "#e60000";
 const couleurVacancesAutres = "#FF8F8F";
 const white = "#ffffff";
@@ -11,7 +11,7 @@ const red = "#FF0000";
 
 export const base = {
   border: `0.5px solid ${white}`,
-  backgroundColor: "white",
+  backgroundColor: "#F5F5F5",
   paddingBottom: "1px",
   paddingTop: "1px",
   paddingLeft: "5px",
@@ -36,10 +36,9 @@ export const mois = {
 
 export const date = {
   ...base,
-  color: black,
+  color: "#333333",
   width: "30px",
-  backgroundColor: white,
-  borderColor: white,
+  borderColor: "#F5F5F5",
 };
 
 export const dateToday = {
@@ -58,12 +57,14 @@ export const ferie = {
   ...date,
   backgroundColor: couleurJourFerie,
   borderColor: couleurJourFerie,
+  color: white,
 };
 
 const colonneConges = {
   ...base,
   color: black,
   width: "63px",
+  borderColor: "#F5F5F5",
 };
 
 export const sansConge = {
@@ -86,21 +87,33 @@ export const demiJourneeConge = {
 };
 
 export const CA = {
-  backgroundColor: "#993366",
-  color: white,
+  backgroundColor: "#87CEEB",
+  color: "#333333",
 };
 
 export const RTT = {
-  backgroundColor: "#cc99ff",
+  backgroundColor: "#B3D9FF",
+  color: "#333333",
 };
 
 export const CET = {
   backgroundColor: "#942192",
-  color: white,
+  color: "#333333",
 };
 
 export const MAL = {
   backgroundColor: "#eff705",
+  color: "#333333",
+};
+
+export const FOR = {
+  backgroundColor: "#FFD3B6",
+  color: "#333333",
+};
+
+export const DEP = {
+  backgroundColor: "#FFF2B3",
+  color: "#333333",
 };
 
 export const vacances = {

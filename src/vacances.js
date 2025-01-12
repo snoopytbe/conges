@@ -2,6 +2,49 @@ import moment from "moment";
 import { Ascension } from "./joursFeries";
 import { memoize } from "./memoize";
 
+/**
+ * La fonction `trouveDateAvant` calcule l'occurrence précédente d'un mois et d'un jour spécifiques par
+ * rapport à une date de début donnée.
+ * @param startingDate - Date de début à partir de laquelle retrouver la date précédente.
+ * @param month - Le paramètre `month` dans la fonction `trouveDateAvant` représente la valeur du mois
+ * pour la date que vous recherchez. Il est utilisé pour déterminer la composante mensuelle de la date
+ * recherchée.
+ * @param day - Le paramètre `day` dans la fonction `trouveDateAvant` représente le jour du mois pour
+ * lequel vous souhaitez trouver une date avant le `startingDate`.
+ */
+const trouveDateAvant = (startingDate, month, day) =>
+  moment([
+    startingDate.year() +
+      (moment([startingDate.year(), month - 1, day]).isSameOrAfter(
+        startingDate
+      ) && -1),
+    month - 1,
+    day,
+  ]);
+
+/**
+ * La fonction `trouveDateApres` calcule la prochaine occurrence d'une date spécifique après une date
+ * de début donnée.
+ * @param startingDate - Date de départ à partir de laquelle trouver la date suivante.
+ * @param month - Le paramètre `month` dans la fonction `trouveDateApres` représente la valeur du mois
+ * (1-12) pour la date que vous souhaitez rechercher après `startingDate`.
+ * @param day - Le paramètre `day` dans la fonction `trouveDateApres` représente le jour du mois pour
+ * lequel vous souhaitez trouver la date suivante après le `startingDate`.
+ */
+const trouveDateApres = (startingDate, month, day) =>
+  moment([
+    startingDate.year() +
+      (moment([startingDate.year(), month - 1, day]).isSameOrBefore(
+        startingDate
+      ) && 1),
+    month - 1,
+    day,
+  ]);
+
+export const precedent30avril = (date) => trouveDateAvant(date, 4, 30);
+export const precedent1ermai = (date) => trouveDateAvant(date, 5, 1);
+export const prochain30avril = (date) => trouveDateApres(date, 4, 30);
+
 export function nthDay(dt, day, number) {
   // Retourne le nième jour du mois par rapport à la date dt
   // dt : date de référence

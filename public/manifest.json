@@ -3,7 +3,7 @@
   "name": "Calendrier congés",
   "icons": [
     {
-      "src": "holiday.png",
+      "src": "snoop_holiday.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     }

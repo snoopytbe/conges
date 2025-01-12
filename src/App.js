@@ -1,24 +1,38 @@
-import React from "react";
-import "./style.css";
+import React, { useEffect, useState } from "react";
 import Calendrier from "./Calendrier";
-//import { updatedawsmobile, awsConnect } from "./awsConnect";
-//import { Amplify } from "aws-amplify";
+import { Amplify } from "aws-amplify";
+import { signInWithRedirect } from "aws-amplify/auth";
+import Button from "@mui/material/Button";
 
-//Amplify.configure(updatedawsmobile);
+import { awsConnect } from "./awsConnect";
+
+import config from "./amplifyconfiguration.json";
+
+const ADMIN_USER_ID = process.env.REACT_APP_ADMIN_USER_ID;
+
+Amplify.configure(config);
 
 export default function App() {
-  //const [user, setUser] = React.useState(null);
+  const [user, setUser] = useState(null);
 
-  /*React.useEffect(() => {
+  useEffect(() => {
     // Connexion AWS de l'utilisateur
     awsConnect(setUser);
-  }, []);*/
+  }, []);
 
   return (
-    <>
-      <div>
+    <div className="App">
+      {user?.userId == ADMIN_USER_ID ? (
         <Calendrier />
-      </div>
-    </>
+      ) : (
+        <Button
+          variant="secondary"
+          color="primary"
+          onClick={() => signInWithRedirect({ provider: "Google" })}
+        >
+          Connexion
+        </Button>
+      )}
+    </div>
   );
 }

@@ -4,7 +4,8 @@ import Tooltip from "@mui/material/Tooltip";
 import { estFerie } from "./joursFeries";
 import * as StyleTableCell from "./styleTableCell";
 import { calculeSoldeCongesAtDate, giveCongeFromDate } from "./conges";
-import { estDernierJourMois } from "./vacances";
+import { estDernierJourMois, prochain30avril } from "./vacances";
+import moment from "moment";
 
 function tooltipTitle(myDate, conges) {
   var result = "";
@@ -17,10 +18,23 @@ function tooltipTitle(myDate, conges) {
     //conge?.abr.includes("CET") ||
     estDernierJourMois(myDate)
   ) {
-    result = "Solde CA : " + calculeSoldeCongesAtDate(myDate, "CA", conges);
+    result =
+      "Solde CA : " +
+      calculeSoldeCongesAtDate(myDate, "CA", conges) +
+      " / " +
+      calculeSoldeCongesAtDate(moment([myDate.year(), 11, 31]), "CA", conges) +
+      " / " +
+      calculeSoldeCongesAtDate(prochain30avril(myDate), "CA", conges);
     result +=
-      ", solde RTT : " + calculeSoldeCongesAtDate(myDate, "RTT", conges);
-    result += ", solde TL : " + calculeSoldeCongesAtDate(myDate, "TL", conges);
+      ", solde RTT : " +
+      calculeSoldeCongesAtDate(myDate, "RTT", conges) +
+      " / " +
+      calculeSoldeCongesAtDate(moment([myDate.year(), 11, 31]), "RTT", conges);
+    result +=
+      ", solde TL : " +
+      calculeSoldeCongesAtDate(myDate, "TL", conges) +
+      " / " +
+      calculeSoldeCongesAtDate(moment([myDate.year(), 11, 31]), "TL", conges);
     //result +=
     //  ", CET utilisés : " + calculeSoldeCongesAtDate(myDate, "CET", conges);
   }

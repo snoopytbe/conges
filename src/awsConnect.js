@@ -1,6 +1,7 @@
-import awsmobile from "./aws-exports";
-import { Hub, Auth } from "aws-amplify";
+import { Hub } from "aws-amplify/utils";
+import { getCurrentUser } from "aws-amplify/auth";
 
+/*
 const isLocalhost = Boolean(
   window.location.hostname === "localhost" ||
     // [::1] is the IPv6 localhost address.
@@ -29,10 +30,10 @@ export const updatedawsmobile = {
       ? localRedirectSignOut
       : productionRedirectSignOut,
   },
-};
+};*/
 
 function getUser() {
-  return Auth.currentAuthenticatedUser()
+  return getCurrentUser()
     .then((userData) => userData)
     .catch(() => console.log("Not signed in"));
 }
@@ -40,6 +41,7 @@ function getUser() {
 export function awsConnect(setUser) {
   Hub.listen("auth", ({ payload: { event, data } }) => {
     switch (event) {
+      case "signInWithRedirect":
       case "signIn":
       case "cognitoHostedUI":
         getUser().then((userData) => setUser(userData));
@@ -48,6 +50,7 @@ export function awsConnect(setUser) {
         setUser(null);
         break;
       case "signIn_failure":
+      case "signInWithRedirect_failure":
       case "cognitoHostedUI_failure":
         console.log("Sign in failure", data);
         break;
