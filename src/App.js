@@ -3,6 +3,7 @@ import Calendrier from "./Calendrier";
 import { Amplify } from "aws-amplify";
 import { signInWithRedirect } from "aws-amplify/auth";
 import Button from "@mui/material/Button";
+import './theme.css';
 
 import { awsConnect } from "./awsConnect";
 

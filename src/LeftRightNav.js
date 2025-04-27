@@ -1,10 +1,16 @@
 import React from "react";
+import PropTypes from "prop-types";
 
-// Import from Material UI
+// Import des composants Material UI
 import Fab from "@mui/material/Fab";
 import IconButton from "@mui/material/IconButton";
 import SvgIcon from "@mui/material/SvgIcon";
 
+/**
+ * Composant pour l'icône de flèche simple vers la gauche
+ * @param {Object} props - Les propriétés du composant
+ * @returns {JSX.Element} L'icône SVG
+ */
 function SimpleLeftArrowIcon(props) {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
@@ -13,6 +19,11 @@ function SimpleLeftArrowIcon(props) {
   );
 }
 
+/**
+ * Composant pour l'icône de double flèche vers la gauche
+ * @param {Object} props - Les propriétés du composant
+ * @returns {JSX.Element} L'icône SVG
+ */
 function DoubleLeftArrowIcon(props) {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
@@ -21,6 +32,11 @@ function DoubleLeftArrowIcon(props) {
   );
 }
 
+/**
+ * Composant pour l'icône de flèche simple vers la droite
+ * @param {Object} props - Les propriétés du composant
+ * @returns {JSX.Element} L'icône SVG
+ */
 function SimpleRightArrowIcon(props) {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
@@ -29,6 +45,11 @@ function SimpleRightArrowIcon(props) {
   );
 }
 
+/**
+ * Composant pour l'icône de double flèche vers la droite
+ * @param {Object} props - Les propriétés du composant
+ * @returns {JSX.Element} L'icône SVG
+ */
 function DoubleRightArrowIcon(props) {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
@@ -37,24 +58,23 @@ function DoubleRightArrowIcon(props) {
   );
 }
 
-function MyFab(params) {
-  const { children, onClick, position, myWidth } = params;
-  var sxPosition;
-  switch (position) {
-    case "doubleleft":
-      sxPosition = { left: 5 };
-      break;
-    case "simpleleft":
-      sxPosition = { left: 50 };
-      break;
-    case "doubleright":
-      sxPosition = { left: myWidth - 100 };
-      break;
-    case "simpleright":
-      sxPosition = { left: myWidth - 55 };
-      break;
-    default:
-  }
+/**
+ * Composant Fab personnalisé avec positionnement absolu
+ * @param {Object} params - Les paramètres du composant
+ * @param {React.ReactNode} params.children - Le contenu du bouton
+ * @param {Function} params.onClick - La fonction de callback au clic
+ * @param {string} params.position - La position du bouton ('doubleleft', 'simpleleft', 'doubleright', 'simpleright')
+ * @param {number} params.myWidth - La largeur du conteneur parent
+ * @returns {JSX.Element} Le bouton Fab positionné
+ */
+function MyFab({ children, onClick, position, myWidth }) {
+  // Définition des positions en fonction du type de bouton
+  const POSITIONS = {
+    doubleleft: { left: 5 },
+    simpleleft: { left: 50 },
+    doubleright: { left: myWidth - 100 },
+    simpleright: { left: myWidth - 55 },
+  };
 
   return (
     <Fab
@@ -63,7 +83,7 @@ function MyFab(params) {
       sx={{
         position: "absolute",
         top: 5,
-        ...sxPosition,
+        ...POSITIONS[position],
       }}
       onClick={onClick}
     >
@@ -72,15 +92,30 @@ function MyFab(params) {
   );
 }
 
-export default function Nav(params) {
-  const {
-    myWidth,
-    onClickLeft,
-    onFastClickLeft,
-    onClickRight,
-    onFastClickRight,
-  } = params;
+MyFab.propTypes = {
+  children: PropTypes.node.isRequired,
+  onClick: PropTypes.func.isRequired,
+  position: PropTypes.oneOf(['doubleleft', 'simpleleft', 'doubleright', 'simpleright']).isRequired,
+  myWidth: PropTypes.number.isRequired,
+};
 
+/**
+ * Composant principal de navigation avec boutons de défilement
+ * @param {Object} params - Les paramètres du composant
+ * @param {number} params.myWidth - La largeur du conteneur
+ * @param {Function} params.onClickLeft - Callback pour le clic sur la flèche simple gauche
+ * @param {Function} params.onFastClickLeft - Callback pour le clic sur la double flèche gauche
+ * @param {Function} params.onClickRight - Callback pour le clic sur la flèche simple droite
+ * @param {Function} params.onFastClickRight - Callback pour le clic sur la double flèche droite
+ * @returns {JSX.Element} La barre de navigation
+ */
+function Nav({
+  myWidth,
+  onClickLeft,
+  onFastClickLeft,
+  onClickRight,
+  onFastClickRight,
+}) {
   return (
     <>
       <MyFab position="doubleleft" onClick={onFastClickLeft} myWidth={myWidth}>
@@ -98,11 +133,7 @@ export default function Nav(params) {
           <SimpleRightArrowIcon htmlColor="#FFFFFF" />
         </IconButton>
       </MyFab>
-      <MyFab
-        position="simpleright"
-        onClick={onFastClickRight}
-        myWidth={myWidth}
-      >
+      <MyFab position="simpleright" onClick={onFastClickRight} myWidth={myWidth}>
         <IconButton aria-label="fastafter">
           <DoubleRightArrowIcon htmlColor="#FFFFFF" />
         </IconButton>
@@ -110,3 +141,13 @@ export default function Nav(params) {
     </>
   );
 }
+
+Nav.propTypes = {
+  myWidth: PropTypes.number.isRequired,
+  onClickLeft: PropTypes.func.isRequired,
+  onFastClickLeft: PropTypes.func.isRequired,
+  onClickRight: PropTypes.func.isRequired,
+  onFastClickRight: PropTypes.func.isRequired,
+};
+
+export default Nav;

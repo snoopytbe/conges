@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Composant principal du calendrier de congés
+ * @module Calendrier
+ */
+
 import React from "react";
 
 // Import du spinner d'attente
@@ -39,6 +44,10 @@ moment.locale("fr-FR");
 var parser = new UAParser();
 const IS_MOBILE = parser?.getDevice()?.type === "mobile";
 
+/**
+ * Composant principal du calendrier
+ * @returns {JSX.Element} Le composant Calendrier
+ */
 export default function Calendrier() {
   /* Le nombre de mois qui doivent être affichés dans le calendrier, en fonction
    * de la largeur de la fenêtre actuelle */

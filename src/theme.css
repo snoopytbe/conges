@@ -1,0 +1,36 @@
+:root {
+  /* Couleurs */
+  --year-bg:            #070722;
+  --month-bg:           #131347;
+  --text-primary:       #F8F4FF;
+  --text-dark:          #333333;
+  --bg-base:            #F5F5F5;
+  --weekend-bg:         #E0E0E0;
+  --holiday-bg:         #A2A2A2;
+  --vac-primary:        #E60000;
+  --vac-secondary:      #FF8F8F;
+  --vac-tertiary:       #F5F5F5;
+  --white:              #FFFFFF;
+  --black:              #000000;
+  --red:                #FF0000;
+  /* Absences */
+  --CA:   #87CEEB;
+  --RTT:  #B3D9FF;
+  --CET:  #942192;
+  --MAL:  #EFF705;
+  --FOR:  #FFD3B6;
+  --DEP:  #FFF2B3;
+  --TL:   #F5F5F5;
+
+  /* Tailles et espacements */
+  --font-small:   0.7em;
+  --font-medium:  0.8em;
+  --font-large:   1em;
+  --pad-v:        1px;
+  --pad-h:        5px;
+  --pad-half-h:   2px;
+  --w-date:       30px;
+  --w-half-day:   31px;
+  --w-full-day:   63px;
+  --w-vacation:   2px;
+}

@@ -1,163 +1,256 @@
-const couleurAnnee = "#070722ff";
-const couleurMois = "#131347ff";
-const couleurPolice = "#f8f4ffff";
-const couleurDimanche = "#E0E0E0";
-const couleurJourFerie = "#A2A2A2";
-const couleurVacances = "#e60000";
-const couleurVacancesAutres = "#FF8F8F";
-const white = "#ffffff";
-const black = "#000000";
-const red = "#FF0000";
+/**
+ * Fichier de styles pour les cellules du calendrier
+ * Contient les styles de base et les variations pour différents types de cellules
+ */
 
-export const base = {
-  border: `0.5px solid ${white}`,
-  backgroundColor: "#F5F5F5",
-  paddingBottom: "1px",
-  paddingTop: "1px",
-  paddingLeft: "5px",
-  paddingRight: "5px",
-  fontSize: "0.7em",
-  textAlign: "center",
-  color: couleurPolice,
-  userSelect: "none",
-};
+import { withBase, vacationStyle, hoverable, highlighted } from "./helpers";
 
-export const annee = {
-  ...base,
-  backgroundColor: couleurAnnee,
-  fontSize: "1em",
-};
+// =============================================
+// 1. Styles des en-têtes
+// =============================================
 
-export const mois = {
-  ...base,
-  backgroundColor: couleurMois,
-  fontSize: "0.8em",
-};
+/**
+ * Style pour l'en-tête d'année
+ * @type {Object}
+ */
+export const annee = withBase({
+  backgroundColor: "var(--year-bg)",
+  fontSize: "var(--font-large)",
+});
 
-export const date = {
-  ...base,
-  color: "#333333",
-  width: "30px",
-  borderColor: "#F5F5F5",
-};
+/**
+ * Style pour l'en-tête de mois
+ * @type {Object}
+ */
+export const mois = withBase({
+  backgroundColor: "var(--month-bg)",
+  fontSize: "var(--font-medium)",
+});
 
+// =============================================
+// 2. Styles des cellules de date
+// =============================================
+
+/**
+ * Style de base pour les cellules de date
+ * @type {Object}
+ */
+export const date = hoverable(
+  withBase({
+    color: "var(--text-dark)",
+    width: "var(--w-date)",
+    borderColor: "var(--bg-base)",
+  })
+);
+
+/**
+ * Style pour la date du jour
+ * @type {Object}
+ */
 export const dateToday = {
-  color: white,
-  backgroundColor: red,
-  borderColor: red,
-};
-
-export const WE = {
   ...date,
-  backgroundColor: couleurDimanche,
-  borderColor: couleurDimanche,
+  color: "var(--white)",
+  backgroundColor: "var(--red)",
+  borderColor: "var(--red)",
 };
 
-export const ferie = {
-  ...date,
-  backgroundColor: couleurJourFerie,
-  borderColor: couleurJourFerie,
-  color: white,
-};
+/**
+ * Style pour les cellules sans date
+ * @type {Object}
+ */
+export const sansDate = withBase();
 
-const colonneConges = {
-  ...base,
-  color: black,
-  width: "63px",
-  borderColor: "#F5F5F5",
-};
+// =============================================
+// 3. Styles des jours spéciaux
+// =============================================
 
-export const sansConge = {
-  ...colonneConges,
-};
+/**
+ * Style pour les week-ends
+ * @type {Object}
+ */
+export const WE = withBase({
+  backgroundColor: "var(--weekend-bg)",
+  borderColor: "var(--weekend-bg)",
+  color: "var(--black)"
+});
 
-export const journeeConge = {
-  ...sansConge,
-};
+/**
+ * Style pour les jours fériés
+ * @type {Object}
+ */
+export const ferie = withBase({
+  backgroundColor: "var(--holiday-bg)",
+  borderColor: "var(--holiday-bg)",
+  color: "var(--white)",
+});
 
-export const demiJourneeSansConge = {
-  ...colonneConges,
-  width: "31px",
-  paddingLeft: "2px",
-  paddingRight: "2px",
-};
+// =============================================
+// 4. Styles des congés
+// =============================================
 
-export const demiJourneeConge = {
-  ...demiJourneeSansConge,
-};
+/**
+ * Style pour les jours sans congé
+ * @type {Object}
+ */
+export const sansConge = withBase({
+  color: "var(--black)",
+  width: "var(--w-full-day)",
+});
 
-export const CA = {
-  backgroundColor: "#87CEEB",
-  color: "#333333",
-};
+/**
+ * Style pour les journées de congé
+ * @type {Object}
+ */
+export const journeeConge = sansConge;
 
-export const RTT = {
-  backgroundColor: "#B3D9FF",
-  color: "#333333",
-};
+/**
+ * Style pour les demi-journées sans congé
+ * @type {Object}
+ */
+export const demiJourneeSansConge = withBase({
+  width: "var(--w-half-day)",
+  padding: `var(--pad-v) var(--pad-half-h)`,
+});
 
-export const CET = {
-  backgroundColor: "#942192",
-  color: "#333333",
-};
+/**
+ * Style pour les demi-journées de congé
+ * @type {Object}
+ */
+export const demiJourneeConge = demiJourneeSansConge;
 
-export const MAL = {
-  backgroundColor: "#eff705",
-  color: "#333333",
-};
+// =============================================
+// 5. Styles des types d'absence
+// =============================================
 
-export const FOR = {
-  backgroundColor: "#FFD3B6",
-  color: "#333333",
-};
+/**
+ * Style pour les congés annuels
+ * @type {Object}
+ */
+export const CA = withBase({
+  backgroundColor: "var(--CA)",
+  color: "var(--text-dark)",
+});
 
-export const DEP = {
-  backgroundColor: "#FFF2B3",
-  color: "#333333",
-};
+/**
+ * Style pour les temps libres
+ * @type {Object}
+ */
+export const TL = withBase({
+  backgroundColor: "var(--TL)",
+  color: "var(--text-dark)",
+});
 
-export const vacances = {
-  ...base,
-  width: "2px",
-  padding: "1px",
-};
+/**
+ * Style pour les RTT
+ * @type {Object}
+ */
+export const RTT = withBase({
+  backgroundColor: "var(--RTT)",
+  color: "var(--text-dark)",
+});
 
-export const maZone = {
-  ...vacances,
-  backgroundColor: couleurVacances,
-  borderLeftColor: couleurVacances,
-};
+/**
+ * Style pour les CET
+ * @type {Object}
+ */
+export const CET = withBase({
+  backgroundColor: "var(--CET)",
+  color: "var(--text-dark)",
+});
 
-export const autresZones = {
-  ...vacances,
-  backgroundColor: couleurVacancesAutres,
-  borderLeftColor: couleurVacancesAutres,
-};
+/**
+ * Style pour les arrêts maladie
+ * @type {Object}
+ */
+export const MAL = withBase({
+  backgroundColor: "var(--MAL)",
+  color: "var(--text-dark)",
+});
 
-export const highlighted = {
-  opacity: 0.5,
-};
+/**
+ * Style pour les formations
+ * @type {Object}
+ */
+export const FOR = withBase({
+  backgroundColor: "var(--FOR)",
+  color: "var(--text-dark)",
+});
 
-export const highlightedLeft = {
-  ...highlighted,
-  borderLeftColor: black,
-};
+/**
+ * Style pour les déplacements
+ * @type {Object}
+ */
+export const DEP = withBase({
+  backgroundColor: "var(--DEP)",
+  color: "var(--text-dark)",
+});
 
-export const highlightedRight = {
-  ...highlighted,
-  borderRightColor: black,
-};
+// =============================================
+// 6. Styles des zones de vacances
+// =============================================
 
-export const highlightedTop = {
-  ...highlighted,
-  borderTopColor: black,
-};
+/**
+ * Style pour la zone de vacances principale
+ * @type {Object}
+ */
+export const maZone = vacationStyle("--vac-primary");
 
-export const highlightedBottom = {
-  ...highlighted,
-  borderBottomColor: black,
-};
+/**
+ * Style pour les autres zones de vacances
+ * @type {Object}
+ */
+export const autresZones = vacationStyle("--vac-secondary");
 
-export const highlightedFirstLast = {
-  opacity: 0.3,
-};
+/**
+ * Style pour les périodes sans vacances
+ * @type {Object}
+ */
+export const sansVacances = vacationStyle("--vac-tertiary");
+
+// =============================================
+// 7. Styles de surbrillance (sélection)
+// =============================================
+
+/**
+ * Style de base pour la surbrillance
+ * @type {Object}
+ */
+export const highlight = highlighted();
+
+/**
+ * Style pour la surbrillance du bord gauche
+ * @type {Object}
+ */
+export const highlightedLeft = highlighted({
+  borderLeftColor: "var(--black)",
+});
+
+/**
+ * Style pour la surbrillance du bord droit
+ * @type {Object}
+ */
+export const highlightedRight = highlighted({
+  borderRightColor: "var(--black)",
+});
+
+/**
+ * Style pour la surbrillance du bord supérieur
+ * @type {Object}
+ */
+export const highlightedTop = highlighted({
+  borderTopColor: "var(--black)",
+});
+
+/**
+ * Style pour la surbrillance du bord inférieur
+ * @type {Object}
+ */
+export const highlightedBottom = highlighted({
+  borderBottomColor: "var(--black)",
+});
+
+/**
+ * Style pour la surbrillance du premier et dernier jour
+ * @type {Object}
+ */
+export const highlightedFirstLast = highlighted({ opacity: 0.3 });
