@@ -3,12 +3,12 @@
  * @module conges
  */
 
-import { nbJourOuvrables, estFerie, estWE } from "./joursFeries";
+import { nbJourOuvrables, estFerie, estWE } from "../services/joursFeries";
 // eslint-disable-next-line no-unused-vars
-import { putApiData, deleteApiData } from "./ApiData";
-import { memoize } from "./memoize";
-import { uuidv4 } from "./uuid";
-import { precedent1ermai, precedent30avril, prochain30avril } from "./vacances";
+import { putApiData, deleteApiData } from "../services/ApiData";
+import { memoize } from "../utils/memoize";
+import { uuidv4 } from "../utils/uuid";
+import { precedent1ermai, precedent30avril } from "../services/vacances";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
 const moment = extendMoment(Moment);

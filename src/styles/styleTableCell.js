@@ -3,7 +3,7 @@
  * Contient les styles de base et les variations pour différents types de cellules
  */
 
-import { withBase, vacationStyle, hoverable, highlighted } from "./helpers";
+import { withBase, vacationStyle, hoverable, highlighted } from "../utils/helpers";
 
 // =============================================
 // 1. Styles des en-têtes

@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-import Calendrier from "./Calendrier";
+import { Calendrier } from "./components";
 import { Amplify } from "aws-amplify";
 import { signInWithRedirect } from "aws-amplify/auth";
 import Button from "@mui/material/Button";
-import './theme.css';
-
-import { awsConnect } from "./awsConnect";
-
-import config from "./amplifyconfiguration.json";
+import { StyleTableCell } from "./styles";
+import { awsConnect } from "./services";
+import { config } from "./config";
+import './styles/theme.css';
 
 const ADMIN_USER_ID = process.env.REACT_APP_ADMIN_USER_ID;
 

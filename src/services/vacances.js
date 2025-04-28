@@ -1,6 +1,25 @@
-import moment from "moment";
+import Moment from "moment";
 import { Ascension } from "./joursFeries";
-import { memoize } from "./memoize";
+import { memoize } from "../utils/memoize";
+import { extendMoment } from "moment-range";
+const moment = extendMoment(Moment);
+
+/**
+ * Calcule le nombre de mois dans une plage de dates qui appartiennent à une année donnée
+ * @param {Object} range - La plage de dates
+ * @param {number} year - L'année à vérifier
+ * @returns {number} Le nombre de mois dans la plage qui appartiennent à l'année
+ */
+export const nbMonthInYear = (range, year) => {
+  const rangeFullYear = moment.range(
+    moment([year, 0, 1]),
+    moment([year, 11, 31])
+  );
+
+  const intersection = rangeFullYear.intersect(range);
+
+  return Array.from(intersection?.by("month"))?.length ?? 0;
+}; 
 
 /**
  * Calcule l'occurrence précédente d'un mois et d'un jour spécifiques par rapport à une date de début.

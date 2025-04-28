@@ -5,9 +5,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import MyDatePicker from "./DatePicker";
 import moment from "moment";
 import "moment/min/locales.min";
+
+import { MyDatePicker } from "../../components";
 
 // Configuration de la locale française pour moment.js
 moment.locale("fr-FR");

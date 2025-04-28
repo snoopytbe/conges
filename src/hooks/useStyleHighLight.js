@@ -1,4 +1,4 @@
-import * as S from "./styleTableCell";
+import * as S from "../styles/styleTableCell";
 import PropTypes from 'prop-types';
 
 /**

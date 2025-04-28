@@ -13,21 +13,18 @@
 import React, { useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import moment from "moment";
-
 import TableCell from "@mui/material/TableCell";
 import Tooltip from "@mui/material/Tooltip";
 
-import * as StyleTableCell from "./styleTableCell";
-import { useStyleHighlight } from "./useStyleHighLight";
-import { calculeSoldeCongesAtDate, giveCongeFromDate } from "./conges";
-import { estDernierJourMois, prochain30avril } from "./vacances";
-
-// Import des comparateurs extraits dans un hook personnalisé
-import {
-  useDeepCompareMemoHighlight,
-  useDeepCompareMemoConge,
-} from "./useDeepCompareMemo";
-import { useTypeCell } from "./useTypeCell";
+import { StyleTableCell } from "../../styles";
+import { useStyleHighlight, useTypeCell } from "../../hooks";
+import { 
+  calculeSoldeCongesAtDate, 
+  giveCongeFromDate,
+  estDernierJourMois,
+  prochain30avril
+} from "../../services";
+import { highlightComparator, congesComparator } from "../../utils";
 
 // ====== UTILITAIRES ======
 
@@ -163,11 +160,19 @@ const SingleCell = React.memo(
 
     // 8. Handlers stables pour éviter re-création à chaque rendu
     const handleClick = useCallback(
-      (e) => onClick(e, myDate),
+      (e) => {
+        if (onClick && myDate) {
+          onClick(e, myDate);
+        }
+      },
       [onClick, myDate]
     );
     const handleContext = useCallback(
-      (e) => onContextMenu(e, myDate),
+      (e) => {
+        if (onContextMenu && myDate) {
+          onContextMenu(e, myDate);
+        }
+      },
       [onContextMenu, myDate]
     );
 
@@ -188,7 +193,7 @@ const SingleCell = React.memo(
       </Tooltip>
     );
   },
-  useDeepCompareMemoConge
+  congesComparator
 );
 SingleCell.propTypes = {
   myDate: PropTypes.object.isRequired, // moment instance
@@ -269,8 +274,32 @@ CellCalendrier.propTypes = {
 CellCalendrier.displayName = "CellCalendrier";
 
 // 4. Export memoïsé avec comparateur deep personnalisé
-export const TableCellCalendrier = React.memo(
-  CellCalendrier,
-  useDeepCompareMemoHighlight
-);
+const TableCellCalendrierMemo = React.memo(CellCalendrier, highlightComparator);
+
+export default function TableCellCalendrier({
+  myDate,
+  conges,
+  onClick,
+  onContextMenu,
+  typeHighlight = "",
+}) {
+  return (
+    <TableCellCalendrierMemo
+      myDate={myDate}
+      conges={conges}
+      onClick={onClick}
+      onContextMenu={onContextMenu}
+      typeHighlight={typeHighlight}
+    />
+  );
+}
+
+TableCellCalendrier.propTypes = {
+  myDate: PropTypes.object.isRequired,
+  conges: PropTypes.array.isRequired,
+  onClick: PropTypes.func.isRequired,
+  onContextMenu: PropTypes.func.isRequired,
+  typeHighlight: PropTypes.string,
+};
+
 TableCellCalendrier.displayName = "TableCellCalendrier";

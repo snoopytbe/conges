@@ -1,12 +1,12 @@
 import React from "react";
 import TableCell from "@mui/material/TableCell";
-import { estFerie } from "./joursFeries";
-import * as StyleTableCell from "./styleTableCell";
 import moment from "moment";
 import "moment/min/locales.min";
-import { useStyleHighlight } from "./useStyleHighLight";
-import { useDeepCompareMemoHighlight } from "./useDeepCompareMemo";
 
+import { StyleTableCell } from "../../styles";
+import { useStyleHighlight } from "../../hooks";
+import { estFerie } from "../../services";
+import { highlightComparator } from "../../utils";
 // Configuration de moment.js pour le format français
 moment.locale("fr-FR");
 
@@ -65,4 +65,4 @@ function TableCellDateForMemo(params) {
 }
 
 // Export du composant avec memoization pour optimiser les performances
-export const TableCellDate = React.memo(TableCellDateForMemo, useDeepCompareMemoHighlight);
+export default React.memo(TableCellDateForMemo, highlightComparator);

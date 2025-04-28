@@ -2,11 +2,11 @@ import React, { useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import TableCell from "@mui/material/TableCell";
 import Tooltip from "@mui/material/Tooltip";
-import * as StyleTableCell from "./styleTableCell";
-import { compteCongesPeriode } from "./conges";
-import { nbJourOuvrables } from "./joursFeries";
 import Moment from "moment";
 import { extendMoment } from "moment-range";
+
+import { StyleTableCell } from "../../styles";
+import { compteCongesPeriode, nbJourOuvrables } from "../../services";
 
 // Types de congés disponibles avec leurs descriptions
 const TYPES_CONGES = {
@@ -56,7 +56,7 @@ const useTooltipTitle = (month, conges) => {
  * @param {Array} props.conges - Liste des congés
  * @param {Function} props.onContextMenu - Gestionnaire d'événement du clic droit
  */
-function TableCellMois({ month, conges, onContextMenu }) {
+export default function TableCellMois({ month, conges, onContextMenu }) {
   // Mémoïsation du titre du tooltip pour éviter les recalculs inutiles
   const tooltipTitle = useTooltipTitle(month, conges);
 
@@ -84,5 +84,3 @@ TableCellMois.propTypes = {
   conges: PropTypes.array.isRequired,
   onContextMenu: PropTypes.func.isRequired
 };
-
-export default React.memo(TableCellMois); // Optimisation du rendu avec React.memo

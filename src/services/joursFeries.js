@@ -1,6 +1,6 @@
 // Inspiré de github.com/martinjw/Holiday
 import moment from "moment";
-import { memoize } from "./memoize";
+import { memoize } from "../utils/memoize";
 
 const Paques = (year) => {
   //Oudin's Algorithm

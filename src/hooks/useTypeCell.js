@@ -1,4 +1,4 @@
-import { estFerie } from "./joursFeries";
+import { estFerie } from "../services/joursFeries";
 import { useMemo } from "react";
 import PropTypes from "prop-types";
 

@@ -67,13 +67,13 @@ function DoubleRightArrowIcon(props) {
  * @param {number} params.myWidth - La largeur du conteneur parent
  * @returns {JSX.Element} Le bouton Fab positionné
  */
-function MyFab({ children, onClick, position, myWidth }) {
+function MyFab({ children, onClick, position }) {
   // Définition des positions en fonction du type de bouton
   const POSITIONS = {
     doubleleft: { left: 5 },
     simpleleft: { left: 50 },
-    doubleright: { left: myWidth - 100 },
-    simpleright: { left: myWidth - 55 },
+    doubleright: { right: 5 },
+    simpleright: { right: 50 },
   };
 
   return (
@@ -83,7 +83,7 @@ function MyFab({ children, onClick, position, myWidth }) {
       sx={{
         position: "absolute",
         top: 5,
-        ...POSITIONS[position],
+        ...POSITIONS[position]
       }}
       onClick={onClick}
     >
@@ -109,7 +109,7 @@ MyFab.propTypes = {
  * @param {Function} params.onFastClickRight - Callback pour le clic sur la double flèche droite
  * @returns {JSX.Element} La barre de navigation
  */
-function Nav({
+export default function LeftRightNav({
   myWidth,
   onClickLeft,
   onFastClickLeft,
@@ -142,12 +142,10 @@ function Nav({
   );
 }
 
-Nav.propTypes = {
+LeftRightNav.propTypes = {
   myWidth: PropTypes.number.isRequired,
   onClickLeft: PropTypes.func.isRequired,
   onFastClickLeft: PropTypes.func.isRequired,
   onClickRight: PropTypes.func.isRequired,
   onFastClickRight: PropTypes.func.isRequired,
 };
-
-export default Nav;
