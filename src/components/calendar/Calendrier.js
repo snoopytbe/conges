@@ -5,6 +5,7 @@
 
 import React, { useState } from "react";
 import DotLoader from "react-spinners/DotLoader";
+import PropTypes from 'prop-types';
 
 // Import from Material UI
 import {
@@ -17,7 +18,16 @@ import {
   Typography,
   Snackbar,
   Alert,
+  Button,
+  Box,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from "@mui/material";
+import LogoutIcon from '@mui/icons-material/Logout';
 
 // Local imports
 import { nbMonthInYear, giveHighlightType } from "../../services";
@@ -35,17 +45,43 @@ import "moment/min/locales.min";
 moment.locale("fr-FR");
 
 import { useConges, useIsMobile, useContextMenu } from "../../hooks";
+import { signOut } from "aws-amplify/auth";
 
 /**
  * Composant principal du calendrier
  * @returns {JSX.Element} Le composant Calendrier
  */
-export default function Calendrier() {
+export default function Calendrier({ user }) {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "info"
   });
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      handleClose();
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
+      setSnackbar({
+        open: true,
+        message: "Erreur lors de la déconnexion",
+        severity: "error"
+      });
+    }
+  };
 
   /* Le nombre de mois qui doivent être affichés dans le calendrier, en fonction
    * de la largeur de la fenêtre actuelle */
@@ -67,7 +103,7 @@ export default function Calendrier() {
     conges,
     loading,
     highlighted,
-    handleClick,
+    handleClick: handleCongesClick,
     handleContextMenu,
     handleModifyConges
   } = useConges(dateDebut, nbMonths, setSnackbar);
@@ -84,19 +120,9 @@ export default function Calendrier() {
     handleMenu(event);
   };
 
-  const onClick = (event, myDate) => {
-    event.preventDefault();
-    handleClick(event, myDate);
-    if (isMobile) {
-      handleMenu(event);
-    }
-  };
-
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
-
-
 
   /* Variable permettant d'identifier si la fenêtre choix de date est visible ou pas */
   const [dateRangeDialogVisible, setDateRangeDialogVisible] =
@@ -122,6 +148,69 @@ export default function Calendrier() {
       )}
       {!loading && (
         <>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            mb: 2, 
+            px: 2 
+          }}>
+            <Button
+              onClick={handleClick}
+              sx={{
+                borderRadius: '50%',
+                minWidth: 'auto',
+                padding: 0,
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                }
+              }}
+            >
+              <Avatar 
+                src={user?.picture} 
+                alt={user?.username}
+                sx={{ width: 32, height: 32 }}
+              />
+            </Button>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              onClick={handleClose}
+              PaperProps={{
+                elevation: 0,
+                sx: {
+                  overflow: 'visible',
+                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                  mt: 1.5,
+                  '& .MuiAvatar-root': {
+                    width: 32,
+                    height: 32,
+                    ml: -0.5,
+                    mr: 1,
+                  },
+                },
+              }}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              <Box sx={{ px: 2, py: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                  {user?.name || user?.username || 'Utilisateur'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {user?.email}
+                </Typography>
+              </Box>
+              <Divider />
+              <MenuItem onClick={handleSignOut}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Déconnexion</ListItemText>
+              </MenuItem>
+            </Menu>
+          </Box>
           <br />
           <div style={{ 
             position: 'relative', 
@@ -229,7 +318,7 @@ export default function Calendrier() {
                             <TableCellDate
                               myDate={myDate}
                               onContextMenu={onContextMenu}
-                              onClick={onClick}
+                              onClick={handleCongesClick}
                               typeHighlight={giveHighlightType(
                                 myDate,
                                 highlighted
@@ -240,7 +329,7 @@ export default function Calendrier() {
                               myDate={myDate}
                               conges={conges}
                               onContextMenu={onContextMenu}
-                              onClick={onClick}
+                              onClick={handleCongesClick}
                               typeHighlight={giveHighlightType(
                                 myDate,
                                 highlighted
@@ -296,3 +385,19 @@ export default function Calendrier() {
     </div>
   );
 }
+
+Calendrier.propTypes = {
+  user: PropTypes.shape({
+    userId: PropTypes.string,
+    username: PropTypes.string,
+    email: PropTypes.string,
+    picture: PropTypes.string,
+    name: PropTypes.string,
+    attributes: PropTypes.shape({
+      email: PropTypes.string,
+      name: PropTypes.string,
+      picture: PropTypes.string,
+      sub: PropTypes.string
+    })
+  }).isRequired
+};

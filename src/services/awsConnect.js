@@ -1,5 +1,5 @@
 import { Hub } from "aws-amplify/utils";
-import { getCurrentUser } from "aws-amplify/auth";
+import { getCurrentUser, fetchUserAttributes } from "aws-amplify/auth";
 
 /*
 const isLocalhost = Boolean(
@@ -34,7 +34,22 @@ export const updatedawsmobile = {
 
 function getUser() {
   return getCurrentUser()
-    .then((userData) => userData)
+    .then(async (userData) => {
+      try {
+        const attributes = await fetchUserAttributes();
+        console.log('Attributs utilisateur:', attributes); // Pour le débogage
+        return {
+          ...userData,
+          username: attributes.name || attributes.email || userData.username,
+          email: attributes.email,
+          picture: attributes.picture,
+          name: attributes.name
+        };
+      } catch (error) {
+        console.error("Erreur lors de la récupération des attributs:", error);
+        return userData;
+      }
+    })
     .catch(() => console.log("Not signed in"));
 }
 

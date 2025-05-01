@@ -1,38 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Calendrier } from "./components";
 import { Amplify } from "aws-amplify";
-import { signInWithRedirect } from "aws-amplify/auth";
-import Button from "@mui/material/Button";
-import { StyleTableCell } from "./styles";
-import { awsConnect } from "./services";
+import CircularProgress from "@mui/material/CircularProgress";
 import { config } from "./config";
 import './styles/theme.css';
-
-const ADMIN_USER_ID = process.env.REACT_APP_ADMIN_USER_ID;
+import { Box } from "@mui/material";
+import AuthButton from "./components/AuthButton/AuthButton";
+import ErrorDisplay from "./components/ErrorDisplay/ErrorDisplay";
+import { useAuth } from "./hooks/useAuth";
+import { ADMIN_USER_ID } from "./config/constants";
 
 Amplify.configure(config);
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const { user, isLoading, error, connectUser } = useAuth();
 
-  useEffect(() => {
-    // Connexion AWS de l'utilisateur
-    awsConnect(setUser);
-  }, []);
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <ErrorDisplay error={error} onRetry={connectUser} />
+      </Box>
+    );
+  }
 
   return (
-    <div className="App">
-      {user?.userId == ADMIN_USER_ID ? (
-        <Calendrier />
+    <Box className="App">
+      {user?.userId === ADMIN_USER_ID ? (
+        <Calendrier user={user} />
       ) : (
-        <Button
-          variant="secondary"
-          color="primary"
-          onClick={() => signInWithRedirect({ provider: "Google" })}
-        >
-          Connexion
-        </Button>
+        <AuthButton onSignIn={connectUser} />
       )}
-    </div>
+    </Box>
   );
 }

@@ -67,7 +67,7 @@ function DoubleRightArrowIcon(props) {
  * @param {number} params.myWidth - La largeur du conteneur parent
  * @returns {JSX.Element} Le bouton Fab positionné
  */
-function MyFab({ children, onClick, position }) {
+function MyFab({ children, onClick, position, myWidth }) {
   // Définition des positions en fonction du type de bouton
   const POSITIONS = {
     doubleleft: { left: 5 },
@@ -87,7 +87,9 @@ function MyFab({ children, onClick, position }) {
       }}
       onClick={onClick}
     >
-      {children}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {children}
+      </div>
     </Fab>
   );
 }
@@ -119,24 +121,16 @@ export default function LeftRightNav({
   return (
     <>
       <MyFab position="doubleleft" onClick={onFastClickLeft} myWidth={myWidth}>
-        <IconButton aria-label="fastbefore">
-          <DoubleLeftArrowIcon htmlColor="#FFFFFF" />
-        </IconButton>
+        <DoubleLeftArrowIcon htmlColor="#FFFFFF" />
       </MyFab>
       <MyFab position="simpleleft" onClick={onClickLeft} myWidth={myWidth}>
-        <IconButton aria-label="before">
-          <SimpleLeftArrowIcon htmlColor="#FFFFFF" />
-        </IconButton>
+        <SimpleLeftArrowIcon htmlColor="#FFFFFF" />
       </MyFab>
-      <MyFab position="doubleright" onClick={onClickRight} myWidth={myWidth}>
-        <IconButton aria-label="after">
-          <SimpleRightArrowIcon htmlColor="#FFFFFF" />
-        </IconButton>
+      <MyFab position="simpleright" onClick={onClickRight} myWidth={myWidth}>
+        <SimpleRightArrowIcon htmlColor="#FFFFFF" />
       </MyFab>
-      <MyFab position="simpleright" onClick={onFastClickRight} myWidth={myWidth}>
-        <IconButton aria-label="fastafter">
-          <DoubleRightArrowIcon htmlColor="#FFFFFF" />
-        </IconButton>
+      <MyFab position="doubleright" onClick={onFastClickRight} myWidth={myWidth}>
+        <DoubleRightArrowIcon htmlColor="#FFFFFF" />
       </MyFab>
     </>
   );

@@ -81,7 +81,7 @@ PersonnalizedMenu.propTypes = {
 export default function MyMenu({ open, mousePos, menuOptions, subMenuOptions, onClick, onClose }) {
   // États pour gérer le sous-menu
   const [activeSubMenu, setActiveSubMenu] = React.useState(false);
-  const [anchorPosition, setAnchorPosition] = React.useState(null);
+  const [anchorPosition, setAnchorPosition] = React.useState({ top: 0, left: 0 });
   const [selectedAbr, setSelectedAbr] = React.useState("");
 
   /**

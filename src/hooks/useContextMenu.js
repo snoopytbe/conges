@@ -5,7 +5,7 @@ import { useState } from "react";
  * @returns {Object} - État et fonctions pour gérer le menu contextuel
  */
 export function useContextMenu() {
-  const [mousePos, setMousePos] = useState({ mouseX: null, mouseY: null });
+  const [mousePos, setMousePos] = useState({ mouseX: 0, mouseY: 0 });
   const [activeMenu, setActiveMenu] = useState(false);
 
   /**
