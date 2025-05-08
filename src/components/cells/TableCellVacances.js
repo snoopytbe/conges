@@ -5,7 +5,6 @@ import moment from "moment";
 
 import { StyleTableCell } from "../../styles";
 import { estVacances } from "../../services";
-import { dateComparator } from "../../utils";
 /**
  * Composant TableCellVacances
  * Affiche une cellule de tableau avec un style différent selon les vacances scolaires
@@ -65,7 +64,11 @@ export default function TableCellVacances({ myDate }) {
     return StyleTableCell.sansVacances;
   }, [myDate]); // Ne se recalcule que si myDate change
 
-  return <TableCell sx={cellStyle} />;
+  return (
+    <TableCell 
+      sx={cellStyle}
+    />
+  );
 }
 
 // Validation des props avec PropTypes

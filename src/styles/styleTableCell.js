@@ -5,6 +5,11 @@
 
 import { withBase, vacationStyle, hoverable, highlighted } from "../utils/helpers";
 
+// Style de base pour toutes les cellules
+const baseStyle = {
+  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+};
+
 // =============================================
 // 1. Styles des en-têtes
 // =============================================
@@ -16,6 +21,7 @@ import { withBase, vacationStyle, hoverable, highlighted } from "../utils/helper
 export const annee = withBase({
   backgroundColor: "var(--year-bg)",
   fontSize: "var(--font-large)",
+  ...baseStyle
 });
 
 /**
@@ -25,6 +31,7 @@ export const annee = withBase({
 export const mois = withBase({
   backgroundColor: "var(--month-bg)",
   fontSize: "var(--font-medium)",
+  ...baseStyle
 });
 
 // =============================================
@@ -40,6 +47,7 @@ export const date = hoverable(
     color: "var(--text-dark)",
     width: "var(--w-date)",
     borderColor: "var(--bg-base)",
+    ...baseStyle
   })
 );
 

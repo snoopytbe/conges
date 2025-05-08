@@ -11,6 +11,7 @@ node_modules
 aws-exports.js
 urlAPI.js
 *DS_Store
+DS_Store
 awsconfiguration.json
 amplifyconfiguration.json
 amplifyconfiguration.dart

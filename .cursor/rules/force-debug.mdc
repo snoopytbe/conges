@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Lance exlint avec npx eslint "repertoire vers les fichiers modifiés" puis corrige les erreurs remontées jusqu'à ce qu'il n'y ait plus d'erreurs.
+Lance npm run build puis corrige les erreurs remontées jusqu'à ce qu'il n'y ait plus d'erreurs.

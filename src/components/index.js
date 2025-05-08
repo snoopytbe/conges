@@ -10,7 +10,6 @@ import TableCellVacances from './cells/TableCellVacances';
 // Dialog components
 import DateRangeDialog from './dialogs/DateRangeDialog';
 import MyDatePicker from './dialogs/DatePicker';
-import CongeCreationDialog from './dialogs/CongeCreationDialog';
 
 // Layout components
 import LeftRightNav from './layout/LeftRightNav';
@@ -24,7 +23,6 @@ export {
   TableCellVacances,
   DateRangeDialog,
   MyDatePicker,
-  CongeCreationDialog,
   LeftRightNav,
   MyMenu
 }; 

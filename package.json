@@ -31,10 +31,19 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/moment": "^2.13.0",
+    "@types/moment-range": "^4.0.0",
+    "@types/node": "^22.15.3",
+    "@types/react-dom": "^17.0.2",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.14.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-react": "^7.29.4",
-    "react-scripts": "latest"
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "react-scripts": "latest",
+    "typescript": "^4.9.5"
   },
   "browserslist": {
     "production": [

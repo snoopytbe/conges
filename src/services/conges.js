@@ -191,7 +191,7 @@ export function modifieConges(abr, duree, joursSelectionnes, conges) {
 
       // Gestion des cas particuliers de durée (AM/PM)
       if (prevDuree && duree) {
-        const [duree1, duree2] = prevDuree.split(";");
+        const [duree1] = prevDuree.split(";");
         if (duree1 === "AM" && duree === "PM") {
           storedDuree = "AM;PM";
           storedAbr = abr ? `${prevConge.abr};${abr}` : prevConge.abr;

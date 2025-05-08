@@ -1,5 +1,3 @@
-import Moment from "moment";
-
 /**
  * Détermine le type d'highlight pour une date donnée
  * @param {Moment} myDate - La date à analyser

@@ -1,19 +1,49 @@
 module.exports = {
+  root: true,
   env: {
     browser: true,
-    es2021: true,
-    node: true,
+    es6: true,
+    node: true
   },
-  extends: ["eslint:recommended", "plugin:react/recommended"],
-  parserOptions: {
-    ecmaFeatures: {
-      jsx: true,
-    },
-    ecmaVersion: "latest",
-    sourceType: "module",
+  plugins: [
+    '@typescript-eslint',
+    'react'
+  ],
+  extends: [
+    'eslint:recommended',
+    'plugin:react/recommended'
+  ],
+  settings: {
+    react: {
+      version: 'detect'
+    }
   },
-  plugins: ["react"],
   rules: {
-    "no-unused-vars": "off",
+    'no-undef': 'off',
+    'react/react-in-jsx-scope': 'off',
+    'react/prop-types': 'off'
   },
+  ignorePatterns: ['.eslintrc.js', 'node_modules', 'build', 'dist'],
+  overrides: [
+    {
+      files: ['*.ts', '*.tsx'],
+      parser: '@typescript-eslint/parser',
+      parserOptions: {
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
+        ecmaVersion: 2020,
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true
+        }
+      },
+      extends: [
+        'plugin:@typescript-eslint/recommended'
+      ],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'warn',
+        '@typescript-eslint/explicit-module-boundary-types': 'off'
+      }
+    }
+  ]
 };

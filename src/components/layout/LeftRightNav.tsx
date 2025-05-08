@@ -1,17 +1,15 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 // Import des composants Material UI
 import Fab from "@mui/material/Fab";
-import IconButton from "@mui/material/IconButton";
-import SvgIcon from "@mui/material/SvgIcon";
+import SvgIcon, { SvgIconProps } from "@mui/material/SvgIcon";
 
 /**
  * Composant pour l'icône de flèche simple vers la gauche
  * @param {Object} props - Les propriétés du composant
  * @returns {JSX.Element} L'icône SVG
  */
-function SimpleLeftArrowIcon(props) {
+function SimpleLeftArrowIcon(props: SvgIconProps): JSX.Element {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
       <path d="M8.842 3.135a.5.5 0 0 1 .023.707L5.435 7.5l3.43 3.658a.5.5 0 0 1-.73.684l-3.75-4a.5.5 0 0 1 0-.684l3.75-4a.5.5 0 0 1 .707-.023Z"></path>
@@ -24,7 +22,7 @@ function SimpleLeftArrowIcon(props) {
  * @param {Object} props - Les propriétés du composant
  * @returns {JSX.Element} L'icône SVG
  */
-function DoubleLeftArrowIcon(props) {
+function DoubleLeftArrowIcon(props: SvgIconProps): JSX.Element {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
       <path d="M6.854 3.854a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L3.207 7.5l3.647-3.646Zm6 0a.5.5 0 0 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L9.207 7.5l3.647-3.646Z"></path>
@@ -37,7 +35,7 @@ function DoubleLeftArrowIcon(props) {
  * @param {Object} props - Les propriétés du composant
  * @returns {JSX.Element} L'icône SVG
  */
-function SimpleRightArrowIcon(props) {
+function SimpleRightArrowIcon(props: SvgIconProps): JSX.Element {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
       <path d="M6.158 3.135a.5.5 0 0 1 .707.023l3.75 4a.5.5 0 0 1 0 .684l-3.75 4a.5.5 0 1 1-.73-.684L9.566 7.5l-3.43-3.658a.5.5 0 0 1 .023-.707Z"></path>
@@ -50,12 +48,21 @@ function SimpleRightArrowIcon(props) {
  * @param {Object} props - Les propriétés du composant
  * @returns {JSX.Element} L'icône SVG
  */
-function DoubleRightArrowIcon(props) {
+function DoubleRightArrowIcon(props: SvgIconProps): JSX.Element {
   return (
     <SvgIcon viewBox="0 0 15 15" {...props}>
       <path d="M2.146 11.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 1 0-.708.708L5.793 7.5l-3.647 3.646Zm6 0a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 1 0-.708.708L11.793 7.5l-3.647 3.646Z"></path>
     </SvgIcon>
   );
+}
+
+type Position = 'doubleleft' | 'simpleleft' | 'doubleright' | 'simpleright';
+
+interface MyFabProps {
+  children: React.ReactNode;
+  onClick: () => void;
+  position: Position;
+  myWidth: number; // Gardé pour la compatibilité avec la signature mais non utilisé
 }
 
 /**
@@ -64,12 +71,12 @@ function DoubleRightArrowIcon(props) {
  * @param {React.ReactNode} params.children - Le contenu du bouton
  * @param {Function} params.onClick - La fonction de callback au clic
  * @param {string} params.position - La position du bouton ('doubleleft', 'simpleleft', 'doubleright', 'simpleright')
- * @param {number} params.myWidth - La largeur du conteneur parent
+ * @param {number} params.myWidth - La largeur du conteneur parent (non utilisé actuellement)
  * @returns {JSX.Element} Le bouton Fab positionné
  */
-function MyFab({ children, onClick, position, myWidth }) {
+const MyFab = ({ children, onClick, position }: MyFabProps): JSX.Element => {
   // Définition des positions en fonction du type de bouton
-  const POSITIONS = {
+  const POSITIONS: Record<Position, { left?: number; right?: number }> = {
     doubleleft: { left: 5 },
     simpleleft: { left: 50 },
     doubleright: { right: 5 },
@@ -92,14 +99,15 @@ function MyFab({ children, onClick, position, myWidth }) {
       </div>
     </Fab>
   );
-}
-
-MyFab.propTypes = {
-  children: PropTypes.node.isRequired,
-  onClick: PropTypes.func.isRequired,
-  position: PropTypes.oneOf(['doubleleft', 'simpleleft', 'doubleright', 'simpleright']).isRequired,
-  myWidth: PropTypes.number.isRequired,
 };
+
+interface LeftRightNavProps {
+  myWidth: number;
+  onClickLeft: () => void;
+  onFastClickLeft: () => void;
+  onClickRight: () => void;
+  onFastClickRight: () => void;
+}
 
 /**
  * Composant principal de navigation avec boutons de défilement
@@ -111,13 +119,13 @@ MyFab.propTypes = {
  * @param {Function} params.onFastClickRight - Callback pour le clic sur la double flèche droite
  * @returns {JSX.Element} La barre de navigation
  */
-export default function LeftRightNav({
+const LeftRightNav = ({
   myWidth,
   onClickLeft,
   onFastClickLeft,
   onClickRight,
   onFastClickRight,
-}) {
+}: LeftRightNavProps): JSX.Element => {
   return (
     <>
       <MyFab position="doubleleft" onClick={onFastClickLeft} myWidth={myWidth}>
@@ -134,12 +142,6 @@ export default function LeftRightNav({
       </MyFab>
     </>
   );
-}
-
-LeftRightNav.propTypes = {
-  myWidth: PropTypes.number.isRequired,
-  onClickLeft: PropTypes.func.isRequired,
-  onFastClickLeft: PropTypes.func.isRequired,
-  onClickRight: PropTypes.func.isRequired,
-  onFastClickRight: PropTypes.func.isRequired,
 };
+
+export default LeftRightNav; 

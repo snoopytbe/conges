@@ -1,12 +1,16 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Box, Paper, Typography, Button } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import { signInWithRedirect } from "aws-amplify/auth";
 
+// "Google" est l'une des valeurs acceptées pour le provider
 const AUTH_PROVIDER = "Google";
 
-const AuthButton = ({ onSignIn }) => (
+interface AuthButtonProps {
+  onSignIn?: () => void;
+}
+
+const AuthButton: React.FC<AuthButtonProps> = ({ onSignIn }) => (
   <Box
     sx={{
       display: 'flex',
@@ -19,7 +23,18 @@ const AuthButton = ({ onSignIn }) => (
     }}
   >
     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-      <img src="/Capture-2025-05-01-103443.png" alt="Logo" style={{ width: 120, height: 144, marginRight: 36, borderRadius: 16, objectFit: 'cover', boxShadow: '0 2px 8px rgba(60,60,60,0.08)' }} />
+      <img 
+        src="/Capture-2025-05-01-103443.png" 
+        alt="Logo" 
+        style={{ 
+          width: 120, 
+          height: 144, 
+          marginRight: 36, 
+          borderRadius: 16, 
+          objectFit: 'cover' as const, 
+          boxShadow: '0 2px 8px rgba(60,60,60,0.08)' 
+        }} 
+      />
     </Box>
     <Paper
       elevation={3}
@@ -50,7 +65,10 @@ const AuthButton = ({ onSignIn }) => (
       <Button
         fullWidth
         variant="outlined"
-        onClick={() => signInWithRedirect({ provider: AUTH_PROVIDER })}
+        onClick={() => {
+          signInWithRedirect({ provider: AUTH_PROVIDER });
+          if (onSignIn) onSignIn();
+        }}
         startIcon={<GoogleIcon style={{ color: '#ea4335' }} />}
         sx={{
           backgroundColor: 'white',
@@ -73,9 +91,5 @@ const AuthButton = ({ onSignIn }) => (
     </Paper>
   </Box>
 );
-
-AuthButton.propTypes = {
-  onSignIn: PropTypes.func.isRequired
-};
 
 export default AuthButton; 

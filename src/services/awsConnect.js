@@ -40,10 +40,12 @@ function getUser() {
         console.log('Attributs utilisateur:', attributes); // Pour le débogage
         return {
           ...userData,
-          username: attributes.name || attributes.email || userData.username,
+          sub: attributes.sub,
+          given_name: attributes.given_name,
+          family_name: attributes.family_name,
           email: attributes.email,
           picture: attributes.picture,
-          name: attributes.name
+          username: attributes.userId
         };
       } catch (error) {
         console.error("Erreur lors de la récupération des attributs:", error);

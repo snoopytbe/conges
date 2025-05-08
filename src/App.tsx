@@ -9,11 +9,24 @@ import AuthButton from "./components/AuthButton/AuthButton";
 import ErrorDisplay from "./components/ErrorDisplay/ErrorDisplay";
 import { useAuth } from "./hooks/useAuth";
 import { ADMIN_USER_ID } from "./config/constants";
+import { User } from "./types";
 
 Amplify.configure(config);
 
-export default function App() {
-  const { user, isLoading, error, connectUser } = useAuth();
+// Définition du type pour l'erreur
+interface AuthError {
+  type: string;
+  message: string;
+  originalError?: Error;
+}
+
+export default function App(): JSX.Element {
+  const { user, isLoading, error, connectUser } = useAuth() as { 
+    user: User | null, 
+    isLoading: boolean, 
+    error: AuthError | null, 
+    connectUser: () => void 
+  };
 
   if (isLoading) {
     return (
@@ -33,11 +46,11 @@ export default function App() {
 
   return (
     <Box className="App">
-      {user?.userId === ADMIN_USER_ID ? (
+      {user && user.userId === ADMIN_USER_ID ? (
         <Calendrier user={user} />
       ) : (
         <AuthButton onSignIn={connectUser} />
       )}
     </Box>
   );
-}
+} 
