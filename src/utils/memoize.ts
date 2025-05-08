@@ -1,17 +1,21 @@
 /**
  * Fonction utilitaire pour mémoriser les résultats d'une fonction
- * @template T
- * @param {(...args: any[]) => T} fn - La fonction à mémoriser
+ * @template Args - Types des arguments de la fonction
+ * @template Result - Type du résultat de la fonction
+ * @param {(...args: Args) => Result} fn - La fonction à mémoriser
  * @param {number} [maxCacheSize=1000] - Taille maximale du cache
- * @returns {(...args: any[]) => T} - La fonction mémorisée
+ * @returns {(...args: Args) => Result} - La fonction mémorisée
  */
-export const memoize = (fn, maxCacheSize = 1000) => {
+export const memoize = <Args extends unknown[], Result>(
+  fn: (...args: Args) => Result, 
+  maxCacheSize = 1000
+) => {
   // Cache pour stocker les résultats mémorisés
-  const cache = {};
+  const cache: Record<string, Result> = {};
   // Compteur pour suivre la taille du cache
   let cacheSize = 0;
 
-  return (...args) => {
+  return (...args: Args): Result => {
     try {
       // Création d'une clé unique basée sur les arguments
       const key = JSON.stringify(args);

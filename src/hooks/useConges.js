@@ -1,11 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getApiRangeData, formatMoment, modifieConges } from "../services";
+import { getApiRangeData, modifieConges } from "../services";
 import { precedent1ermai, prochain30avril } from "../services/vacances";
-import moment from "moment";
+import {
+  min as dateMin,
+  max as dateMax,
+  addMonths,
+  startOfYear,
+  startOfMonth,
+  endOfMonth,
+  format,
+  isWithinInterval
+} from "date-fns";
 
 /**
  * Hook personnalisé pour gérer les congés
- * @param {moment} dateDebut - Date de début pour le chargement des congés
+ * @param {Date} dateDebut - Date de début pour le chargement des congés
  * @param {number} nbMonths - Nombre de mois à afficher
  * @param {Function} setSnackbar - Fonction pour afficher les notifications
  * @returns {Object} - État et fonctions pour gérer les congés
@@ -17,25 +26,25 @@ const congesCache = new Map();
 export function useConges(dateDebut, nbMonths, setSnackbar) {
   const [conges, setConges] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [highlighted, setHighlighted] = useState(null);
+  const [highlighted, setHighlighted] = useState(null); // { start: Date, end: Date } ou null
   const clickedRef = useRef(false);
   const startDateHighlightRef = useRef(null);
 
   // Génère une clé unique pour le cache basée sur la période
   const getCacheKey = useCallback((startDate, endDate) => {
-    return `${startDate.format('YYYY-MM')}-${endDate.format('YYYY-MM')}`;
+    return `${format(startDate, 'yyyy-MM')}-${format(endDate, 'yyyy-MM')}`;
   }, []);
 
   const fetchConges = useCallback(async () => {
     try {
       // Calcul des dates de début et fin pour le chargement des données
-      const dateDebutData = moment.min(
-        moment([dateDebut.year(), 0, 1]),
+      const dateDebutData = dateMin([
+        startOfYear(dateDebut),
         precedent1ermai(dateDebut)
-      );
+      ]);
 
       const dateFinData = prochain30avril(
-        dateDebut.clone().add(nbMonths + 1, "months")
+        addMonths(dateDebut, nbMonths + 1)
       );
 
       const cacheKey = getCacheKey(dateDebutData, dateFinData);
@@ -46,16 +55,13 @@ export function useConges(dateDebut, nbMonths, setSnackbar) {
         return;
       }
 
-      //setLoading(true);
       try {
         const data = await getApiRangeData(
-          formatMoment(dateDebutData),
-          formatMoment(dateFinData)
+          format(dateDebutData, 'yyyy-MM-dd'),
+          format(dateFinData, 'yyyy-MM-dd')
         );
-        
         // Mise en cache des données
         congesCache.set(cacheKey, data);
-        
         setConges(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des congés:", error);
@@ -85,50 +91,46 @@ export function useConges(dateDebut, nbMonths, setSnackbar) {
   // Gestion du clic sur une date
   const handleClick = useCallback((event, myDate) => {
     event.preventDefault();
-    
     if (!clickedRef.current) {
       startDateHighlightRef.current = myDate;
-      setHighlighted(moment.range(myDate, myDate));
+      setHighlighted({ start: myDate, end: myDate });
       clickedRef.current = true;
     } else {
       if (startDateHighlightRef.current) {
-        setHighlighted(
-          moment.range(
-            moment.min(startDateHighlightRef.current, myDate),
-            moment.max(startDateHighlightRef.current, myDate)
-          )
-        );
+        const start = dateMin([startDateHighlightRef.current, myDate]);
+        const end = dateMax([startDateHighlightRef.current, myDate]);
+        setHighlighted({ start, end });
       }
       clickedRef.current = false;
     }
-  }, [highlighted]);
+  }, []);
 
   // Gestion du menu contextuel
   const handleContextMenu = useCallback((event, myDate) => {
     event.preventDefault();
-    if (highlighted?.contains(myDate)) {
-      setHighlighted(null);
-    } else {
-      setHighlighted(moment.range(startDateHighlightRef.current, myDate));
+    // Si la date est déjà dans la sélection, ne rien faire
+    if (
+      highlighted &&
+      isWithinInterval(myDate, { start: highlighted.start, end: highlighted.end })
+    ) {
+      return;
     }
+    setHighlighted({ start: startDateHighlightRef.current, end: myDate });
     clickedRef.current = false;
   }, [highlighted]);
 
   // Modification des congés
   const handleModifyConges = useCallback(async (abr, duree) => {
     if (!highlighted) return;
-
     try {
       setConges(modifieConges(abr, duree, highlighted, conges));
       setHighlighted(null);
-      
       // Invalide le cache pour la période concernée
       const cacheKey = getCacheKey(
-        moment(highlighted.start).startOf('month'),
-        moment(highlighted.end).endOf('month')
+        startOfMonth(highlighted.start),
+        endOfMonth(highlighted.end)
       );
       congesCache.delete(cacheKey);
-      
       setSnackbar({
         open: true,
         message: "Congés mis à jour avec succès",

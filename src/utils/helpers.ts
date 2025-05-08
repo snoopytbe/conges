@@ -3,7 +3,7 @@
  * @param {Object} overrides - Objet contenant les styles à surcharger
  * @returns {Object} - Objet de styles CSS
  */
-export const withBase = (overrides) => ({
+export const withBase = (overrides: Record<string, string>) => ({
   border: `0.5px solid var(--bg-base)`,
   backgroundColor: "var(--bg-base)",
   padding: `var(--pad-v) var(--pad-h)`,
@@ -20,7 +20,7 @@ export const withBase = (overrides) => ({
  * @param {string} colorVar - Nom de la variable CSS pour la couleur
  * @returns {Object} - Objet de styles CSS pour les vacances
  */
-export const vacationStyle = (colorVar) =>
+export const vacationStyle = (colorVar: string) =>
   withBase({
     width: "var(--w-vacation)",
     padding: "var(--pad-v)",
@@ -33,7 +33,7 @@ export const vacationStyle = (colorVar) =>
  * @param {Object} styleObj - Objet de styles CSS à enrichir
  * @returns {Object} - Objet de styles CSS avec effets de survol
  */
-export const hoverable = (styleObj) => ({
+export const hoverable = (styleObj: Record<string, string>) => ({
   ...styleObj,
   cursor: "pointer",
   ":hover": {
@@ -46,7 +46,7 @@ export const hoverable = (styleObj) => ({
  * @param {Object} styleObj - Objet de styles CSS à modifier
  * @returns {Object} - Objet de styles CSS avec effet de surbrillance
  */
-export const highlighted = (styleObj) => ({
+export const highlighted = (styleObj: Record<string, string>) => ({
   ...styleObj,
   opacity: 0.5,
   ":hover": {

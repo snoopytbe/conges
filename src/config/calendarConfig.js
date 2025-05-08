@@ -44,5 +44,4 @@ export const LOADER_CONFIG = {
 export const CALENDAR_CONFIG = {
   maxMonths: 12,
   cellWidth: 139,
-  title: "Congés"
 }; 

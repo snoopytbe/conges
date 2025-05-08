@@ -2,8 +2,13 @@ import React, { useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import TableCell from "@mui/material/TableCell";
 import Tooltip from "@mui/material/Tooltip";
-import Moment from "moment";
-import { extendMoment } from "moment-range";
+import {
+  startOfMonth,
+  endOfMonth,
+  format,
+  isValid
+} from "date-fns";
+import { fr } from "date-fns/locale";
 
 import { StyleTableCell } from "../../styles";
 import { compteCongesPeriode, nbJourOuvrables } from "../../services";
@@ -16,20 +21,19 @@ const TYPES_CONGES = {
   MAL: "MAL"  // Maladie
 };
 
-const moment = extendMoment(Moment);
-
 /**
  * Calcule le titre du tooltip avec les informations de congés pour un mois donné
- * @param {Moment} month - Le mois à analyser
+ * @param {Date} month - Le mois à analyser
  * @param {Array} conges - Liste des congés
  * @returns {string} - Chaîne formatée contenant les informations de congés
  */
 const useTooltipTitle = (month, conges) => {
   return useMemo(() => {
+    if (!isValid(month)) return "";
     // Création de la période du mois
-    const debutMois = moment([month.year(), month.month(), 1]);
-    const finMois = debutMois.clone().add(1, "month").subtract(1, "day");
-    const periodeCalcul = moment.range(debutMois, finMois);
+    const debutMois = startOfMonth(month);
+    const finMois = endOfMonth(month);
+    const periodeCalcul = { start: debutMois, end: finMois };
 
     // Calcul des jours de congés par type
     const joursConges = Object.entries(TYPES_CONGES).reduce((acc, [key, type]) => ({
@@ -52,7 +56,7 @@ const useTooltipTitle = (month, conges) => {
 /**
  * Composant de cellule de tableau affichant un mois avec un tooltip d'informations
  * @param {Object} props - Les propriétés du composant
- * @param {Moment} props.month - Le mois à afficher
+ * @param {Date} props.month - Le mois à afficher
  * @param {Array} props.conges - Liste des congés
  * @param {Function} props.onContextMenu - Gestionnaire d'événement du clic droit
  */
@@ -72,7 +76,7 @@ export default function TableCellMois({ month, conges, onContextMenu }) {
         colSpan={4}
         onContextMenu={handleContextMenu}
       >
-        {month.locale("fr-FR").format("MMMM")}
+        {format(month, "MMMM", { locale: fr })}
       </TableCell>
     </Tooltip>
   );
@@ -80,7 +84,7 @@ export default function TableCellMois({ month, conges, onContextMenu }) {
 
 // Validation des props avec PropTypes
 TableCellMois.propTypes = {
-  month: PropTypes.instanceOf(moment).isRequired,
+  month: PropTypes.instanceOf(Date).isRequired,
   conges: PropTypes.array.isRequired,
   onContextMenu: PropTypes.func.isRequired
 };

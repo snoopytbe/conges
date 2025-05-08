@@ -19,9 +19,7 @@ const UserMenu = ({ user, onSignOut }) => {
     <Box sx={{ 
       display: 'flex', 
       justifyContent: 'flex-end', 
-      alignItems: 'center', 
-      mb: 2, 
-      px: 2 
+      alignItems: 'center'
     }}>
       <Button
         onClick={handleClick}

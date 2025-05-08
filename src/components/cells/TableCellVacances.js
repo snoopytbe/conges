@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import TableCell from "@mui/material/TableCell";
-import moment from "moment";
+import { isValid } from "date-fns";
 
 import { StyleTableCell } from "../../styles";
 import { estVacances } from "../../services";
@@ -10,7 +10,7 @@ import { estVacances } from "../../services";
  * Affiche une cellule de tableau avec un style différent selon les vacances scolaires
  * 
  * @param {Object} props - Les propriétés du composant
- * @param {moment.Moment} props.myDate - La date à analyser (objet moment.js)
+ * @param {Date} props.myDate - La date à analyser (objet Date natif)
  * @returns {JSX.Element} - Une cellule de tableau avec le style approprié
  */
 function TableCellVacancesForMemo({ myDate }) {
@@ -20,7 +20,7 @@ function TableCellVacancesForMemo({ myDate }) {
   // Mémoïse le style de la cellule pour éviter les recalculs inutiles
   const cellStyle = useMemo(() => {
     // Vérification de la validité de la date
-    if (!myDate?.isValid()) {
+    if (!isValid(myDate)) {
       return StyleTableCell.sansVacances;
     }
 
@@ -39,7 +39,7 @@ function TableCellVacancesForMemo({ myDate }) {
 
 // Validation des props avec PropTypes
 TableCellVacancesForMemo.propTypes = {
-  myDate: PropTypes.instanceOf(moment).isRequired, // Doit être un objet moment.js valide
+  myDate: PropTypes.instanceOf(Date).isRequired, // Doit être un objet Date natif valide
 };
 
 // Exporte le composant avec memoization pour optimiser les performances
@@ -50,7 +50,7 @@ export default function TableCellVacances({ myDate }) {
   // Mémoïse le style de la cellule pour éviter les recalculs inutiles
   const cellStyle = useMemo(() => {
     // Vérification de la validité de la date
-    if (!myDate?.isValid()) {
+    if (!isValid(myDate)) {
       return StyleTableCell.sansVacances;
     }
 
@@ -73,5 +73,5 @@ export default function TableCellVacances({ myDate }) {
 
 // Validation des props avec PropTypes
 TableCellVacances.propTypes = {
-  myDate: PropTypes.instanceOf(moment).isRequired, // Doit être un objet moment.js valide
+  myDate: PropTypes.instanceOf(Date).isRequired, // Doit être un objet Date natif valide
 };

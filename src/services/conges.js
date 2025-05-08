@@ -3,36 +3,47 @@
  * @module conges
  */
 
+import {
+  isBefore,
+  isAfter,
+  isSameDay,
+  subYears,
+  startOfMonth,
+  startOfYear,
+  endOfYear,
+  getYear,
+  getMonth,
+  format,
+  eachDayOfInterval,
+  isWithinInterval,
+  parseISO
+} from "date-fns";
 import { nbJourOuvrables, estFerie, estWE } from "../services/joursFeries";
 // eslint-disable-next-line no-unused-vars
 import { putApiData, deleteApiData } from "../services/ApiData";
 import { memoize } from "../utils/memoize";
 import { uuidv4 } from "../utils/uuid";
 import { precedent1ermai, precedent30avril } from "../services/vacances";
-import Moment from "moment";
-import { extendMoment } from "moment-range";
-const moment = extendMoment(Moment);
 
 // Constantes pour les calculs de congés
 const JOURS_CA_ANNEE = 27; // Nombre de jours de congés annuels
 const JOURS_TRAVAIL_ANNEE = 209; // Nombre de jours de travail par an
-const DATE_TRANSITION_RTE = moment([2023, 6, 1]); // Date de transition vers RTE
+const DATE_TRANSITION_RTE = new Date(2023, 6, 1); // Date de transition vers RTE
 const JOURS_TL_2023 = 54; // Nombre de jours TL en 2023
 const JOURS_TL_NORMAL = 108; // Nombre de jours TL normal
 
 /**
- * Formate une date Moment.js en chaîne au format AAAA-MM-JJ
- * @param {moment.Moment} date - L'objet date à formater
+ * Formate une date Date en chaîne au format AAAA-MM-JJ
+ * @param {Date} date - L'objet date à formater
  * @returns {string} La date formatée en AAAA-MM-JJ
  */
 export const formatMoment = (date) => {
-  const padTwoDigits = (num) => `${num <= 8 ? "0" : ""}${num + 1}`;
-  return `${date.year()}-${padTwoDigits(date.month())}-${padTwoDigits(date.date() - 1)}`;
+  return format(date, "yyyy-MM-dd");
 };
 
 /**
  * Trouve un congé correspondant à une date donnée
- * @param {moment.Moment} date - La date à rechercher
+ * @param {Date} date - La date à rechercher
  * @param {Array<Object>} conges - Liste des congés
  * @returns {Object|undefined} Le congé correspondant ou undefined
  */
@@ -44,13 +55,16 @@ export const giveCongeFromDate = memoize((date, conges) => {
  * Calcule le nombre de congés d'un type spécifique sur une période donnée
  * @param {string} abr - Type de congé (ex: "RTT", "CA", "TL")
  * @param {Array<Object>} conges - Liste des congés
- * @param {moment.range} periodeDecompte - Période de décompte
+ * @param {{start: Date, end: Date}} periodeDecompte - Période de décompte
  * @returns {number} Nombre de jours de congés
  */
 export const compteCongesPeriode = memoize((abr, conges, periodeDecompte) => {
   return conges.reduce((result, oneConge) => {
-    if (periodeDecompte.contains(moment(oneConge.date, "yyyy-MM-DD")) && 
-        oneConge.abr.includes(abr)) {
+    const congeDate = parseISO(oneConge.date);
+    if (
+      isWithinInterval(congeDate, periodeDecompte) &&
+      oneConge.abr.includes(abr)
+    ) {
       return result + (oneConge.duree === "J" ? 1 : 0.5);
     }
     return result;
@@ -68,54 +82,53 @@ const calculeCapitalTL = memoize((annee) => {
 
 /**
  * Calcule le capital de RTT pour une date donnée
- * @param {moment.Moment} date - Date de calcul
+ * @param {Date} date - Date de calcul
  * @returns {number} Nombre de jours de RTT possibles
  */
 const calculeCapitalRTT = memoize((date) => {
   let periodeCalcul;
-  if (date.isBefore(DATE_TRANSITION_RTE)) {
+  if (isBefore(date, DATE_TRANSITION_RTE)) {
     // Période EDF
-    if (date.isAfter(moment([2023, 3, 30]))) return 0;
-
-    const anneeDebutPeriode = date.year() + (date.month() <= 3 ? -1 : 0);
-    periodeCalcul = moment.range(
-      moment([anneeDebutPeriode, 4, 1]),
-      moment([anneeDebutPeriode + 1, 3, 30])
-    );
+    if (isAfter(date, new Date(2023, 3, 30))) return 0;
+    const anneeDebutPeriode = getYear(date) + (getMonth(date) <= 3 ? -1 : 0);
+    periodeCalcul = {
+      start: new Date(anneeDebutPeriode, 4, 1),
+      end: new Date(anneeDebutPeriode + 1, 3, 30)
+    };
   } else {
     // Période RTE
-    if (date.year() === 2023) return 8;
-
-    periodeCalcul = moment.range(
-      moment([date.year(), 0, 1]),
-      moment([date.year(), 11, 31])
-    );
+    if (getYear(date) === 2023) return 8;
+    periodeCalcul = {
+      start: startOfYear(date),
+      end: endOfYear(date)
+    };
   }
   return nbJourOuvrables(periodeCalcul) - JOURS_CA_ANNEE - JOURS_TRAVAIL_ANNEE;
 });
 
 /**
  * Calcule le capital de congés pour un type donné
- * @param {moment.Moment} date - Date de calcul
+ * @param {Date} date - Date de calcul
  * @param {string} abr - Type de congé
  * @param {Array<Object>} conges - Liste des congés
  * @returns {number} Capital de congés
  */
 const calculeCapitalConges = (date, abr, conges) => {
   let capital;
-  
   switch (abr) {
     case "TL":
-      capital = calculeCapitalTL(date.year());
+      capital = calculeCapitalTL(getYear(date));
       break;
     case "CA": {
-      const lastCAperiod = moment.range(
-        precedent1ermai(date).add(-1, "year"),
-        precedent30avril(date)
-      );
+      const lastCAperiod = {
+        start: subYears(precedent1ermai(date), 1),
+        end: precedent30avril(date)
+      };
       const capitalRestantAnneePrecedente =
         JOURS_CA_ANNEE - compteCongesPeriode("CA", conges, lastCAperiod);
-      capital = JOURS_CA_ANNEE + (precedent30avril(date, 4).year() <= 2018 ? 0 : capitalRestantAnneePrecedente);
+      capital =
+        JOURS_CA_ANNEE +
+        (getYear(precedent30avril(date)) <= 2018 ? 0 : capitalRestantAnneePrecedente);
       break;
     }
     case "RTT":
@@ -124,35 +137,33 @@ const calculeCapitalConges = (date, abr, conges) => {
     default:
       capital = 0;
   }
-  
   return capital;
 };
 
 /**
  * Calcule le solde de congés à une date donnée
- * @param {moment.Moment} date - Date de calcul
+ * @param {Date} date - Date de calcul
  * @param {string} abr - Type de congé
  * @param {Array<Object>} conges - Liste des congés
  * @returns {number} Solde de congés
  */
 export const calculeSoldeCongesAtDate = (date, abr, conges) => {
   let debutPeriode;
-  
   switch (abr) {
     case "RTT": {
-      debutPeriode = date.isBefore(DATE_TRANSITION_RTE)
+      debutPeriode = isBefore(date, DATE_TRANSITION_RTE)
         ? precedent1ermai(date)
-        : date.year() === 2023
-        ? moment([2023, 6, 1])
-        : moment([date.year(), 0, 1]);
+        : getYear(date) === 2023
+        ? new Date(2023, 6, 1)
+        : startOfYear(date);
       break;
     }
     case "TL": {
-      debutPeriode = date.isBefore(DATE_TRANSITION_RTE)
-        ? moment([date.year(), date.month(), 1])
-        : date.year() === 2023
-        ? moment([2023, 6, 1])
-        : moment([date.year(), 0, 1]);
+      debutPeriode = isBefore(date, DATE_TRANSITION_RTE)
+        ? startOfMonth(date)
+        : getYear(date) === 2023
+        ? new Date(2023, 6, 1)
+        : startOfYear(date);
       break;
     }
     case "CA": {
@@ -162,33 +173,30 @@ export const calculeSoldeCongesAtDate = (date, abr, conges) => {
     default:
       return 0;
   }
-
-  const periodeDecompte = moment.range(debutPeriode, date);
-  return calculeCapitalConges(date, abr, conges) - compteCongesPeriode(abr, conges, periodeDecompte);
+  const periodeDecompte = { start: debutPeriode, end: date };
+  return (
+    calculeCapitalConges(date, abr, conges) -
+    compteCongesPeriode(abr, conges, periodeDecompte)
+  );
 };
 
 /**
  * Modifie les congés en fonction des sélections
  * @param {string} abr - Type de congé
  * @param {string} duree - Durée du congé
- * @param {moment.range} joursSelectionnes - Jours sélectionnés
+ * @param {{start: Date, end: Date}} joursSelectionnes - Jours sélectionnés (intervalle)
  * @param {Array<Object>} conges - Liste des congés
  * @returns {Array<Object>} Nouvelle liste des congés
  */
 export function modifieConges(abr, duree, joursSelectionnes, conges) {
   let newConges = [];
-
-  Array.from(joursSelectionnes.by("day")).forEach((jour) => {
+  eachDayOfInterval(joursSelectionnes).forEach((jour) => {
     if (!estFerie(jour) && !estWE(jour)) {
-      const prevConge = conges.find((item) =>
-        moment(item.date).isSame(jour, "day")
-      );
+      const prevConge = conges.find((item) => isSameDay(parseISO(item.date), jour));
       const id = prevConge?.id ?? uuidv4();
       const prevDuree = prevConge?.duree ?? "";
-
       let storedDuree = duree;
       let storedAbr = abr;
-
       // Gestion des cas particuliers de durée (AM/PM)
       if (prevDuree && duree) {
         const [duree1] = prevDuree.split(";");
@@ -208,14 +216,12 @@ export function modifieConges(abr, duree, joursSelectionnes, conges) {
           }
         }
       }
-
       const data = {
         date: formatMoment(jour),
         abr: storedAbr,
         id,
-        duree: storedDuree,
+        duree: storedDuree
       };
-
       if (abr === "") {
         deleteApiData([data]);
       } else {
@@ -224,13 +230,11 @@ export function modifieConges(abr, duree, joursSelectionnes, conges) {
       }
     }
   });
-
   // Ajout des congés existants non modifiés
   conges?.forEach((oneConge) => {
-    if (!joursSelectionnes?.contains(moment(oneConge.date))) {
+    if (!isWithinInterval(parseISO(oneConge.date), joursSelectionnes)) {
       newConges = [...newConges, oneConge];
     }
   });
-
   return newConges;
 }

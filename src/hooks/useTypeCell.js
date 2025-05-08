@@ -1,6 +1,7 @@
 import { estFerie } from "../services/joursFeries";
 import { useMemo } from "react";
 import PropTypes from "prop-types";
+import { isValid, getDay } from "date-fns";
 
 /**
  * Hook personnalisé pour déterminer le type de cellule en fonction de la date et des congés
@@ -13,13 +14,13 @@ export function useTypeCell(myDate, conge, defaultType) {
   // Utilisation de useMemo pour mémoriser le résultat et éviter les recalculs inutiles
   return useMemo(() => {
     // Vérification de la validité de la date
-    if (!myDate.isValid()) return "sansDate";
+    if (!isValid(myDate)) return "sansDate";
     
     // Vérification si la date est un jour férié
     if (estFerie(myDate)) return "ferie";
     
     // Vérification si la date est un week-end
-    if ([0, 6].includes(myDate.day())) return "WE";
+    if ([0, 6].includes(getDay(myDate))) return "WE";
     
     // Si pas de congé, retourne le type par défaut
     if (!conge) return defaultType;

@@ -5,18 +5,13 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import moment from "moment";
-import "moment/min/locales.min";
 
 import { MyDatePicker } from "../../components";
-
-// Configuration de la locale française pour moment.js
-moment.locale("fr-FR");
 
 /**
  * Composant de dialogue pour sélectionner une nouvelle date de début pour le calendrier
  * @param {Object} props - Les propriétés du composant
- * @param {Date} props.dateDebut - La date de début actuelle
+ * @param {Date} props.dateDebut - La date de début actuelle (objet Date natif)
  * @param {Function} props.handleClose - Fonction de callback appelée lors de la fermeture du dialogue
  * @returns {JSX.Element} Le composant de dialogue
  */

@@ -10,6 +10,7 @@ import ErrorDisplay from "./components/ErrorDisplay/ErrorDisplay";
 import { useAuth } from "./hooks/useAuth";
 import { ADMIN_USER_ID } from "./config/constants";
 import { User } from "./types";
+import AppBar from "./components/layout/AppBar";
 
 Amplify.configure(config);
 
@@ -47,7 +48,11 @@ export default function App(): JSX.Element {
   return (
     <Box className="App">
       {user && user.userId === ADMIN_USER_ID ? (
-        <Calendrier user={user} />
+        <>
+          <AppBar user={user} onSignOut={connectUser} />
+          <br />
+          <Calendrier />
+        </>
       ) : (
         <AuthButton onSignIn={connectUser} />
       )}

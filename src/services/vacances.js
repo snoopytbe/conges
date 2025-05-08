@@ -1,36 +1,50 @@
-import Moment from "moment";
+import {
+  addDays,
+  subDays,
+  set,
+  getYear,
+  getMonth,
+  getDate,
+  getDay,
+  isBefore,
+  isAfter,
+  isSameDay,
+  isValid,
+  startOfMonth,
+  lastDayOfMonth,
+  eachMonthOfInterval
+} from "date-fns";
 import { Ascension } from "./joursFeries";
 import { memoize } from "../utils/memoize";
-import { extendMoment } from "moment-range";
-const moment = extendMoment(Moment);
 
 /**
  * Calcule le nombre de mois dans une plage de dates qui appartiennent à une année donnée
- * @param {Object} range - La plage de dates
+ * @param {Object} range - La plage de dates {start, end}
  * @param {number} year - L'année à vérifier
  * @returns {number} Le nombre de mois dans la plage qui appartiennent à l'année
  */
 export const nbMonthInYear = (range, year) => {
-  const rangeFullYear = moment.range(
-    moment([year, 0, 1]),
-    moment([year, 11, 31])
-  );
-
-  const intersection = rangeFullYear.intersect(range);
-
-  return Array.from(intersection?.by("month"))?.length ?? 0;
-}; 
+  const rangeFullYear = {
+    start: new Date(year, 0, 1),
+    end: new Date(year, 11, 31)
+  };
+  // Intersection
+  const start = isAfter(range.start, rangeFullYear.start) ? range.start : rangeFullYear.start;
+  const end = isBefore(range.end, rangeFullYear.end) ? range.end : rangeFullYear.end;
+  if (isAfter(start, end)) return 0;
+  return eachMonthOfInterval({ start, end }).length;
+};
 
 /**
  * Calcule l'occurrence précédente d'un mois et d'un jour spécifiques par rapport à une date de début.
- * @param {moment.Moment} startingDate - Date de référence à partir de laquelle chercher
+ * @param {Date} startingDate - Date de référence à partir de laquelle chercher
  * @param {number} month - Mois recherché (1-12)
  * @param {number} day - Jour du mois recherché
- * @returns {moment.Moment} La date trouvée
+ * @returns {Date} La date trouvée
  * @throws {Error} Si les paramètres ne sont pas valides
  */
 const trouveDateAvant = (startingDate, month, day) => {
-  if (!startingDate?.isValid()) {
+  if (!isValid(startingDate)) {
     throw new Error("La date de départ doit être valide");
   }
   if (month < 1 || month > 12) {
@@ -39,27 +53,22 @@ const trouveDateAvant = (startingDate, month, day) => {
   if (day < 1 || day > 31) {
     throw new Error("Le jour doit être compris entre 1 et 31");
   }
-
-  return moment([
-    startingDate.year() +
-      (moment([startingDate.year(), month - 1, day]).isSameOrAfter(
-        startingDate
-      ) && -1),
-    month - 1,
-    day,
-  ]);
+  const year = getYear(startingDate);
+  const candidate = new Date(year, month - 1, day);
+  const resultYear = isAfter(candidate, startingDate) || isSameDay(candidate, startingDate) ? year - 1 : year;
+  return new Date(resultYear, month - 1, day);
 };
 
 /**
  * Calcule la prochaine occurrence d'une date spécifique après une date de début.
- * @param {moment.Moment} startingDate - Date de référence à partir de laquelle chercher
+ * @param {Date} startingDate - Date de référence à partir de laquelle chercher
  * @param {number} month - Mois recherché (1-12)
  * @param {number} day - Jour du mois recherché
- * @returns {moment.Moment} La date trouvée
+ * @returns {Date} La date trouvée
  * @throws {Error} Si les paramètres ne sont pas valides
  */
 const trouveDateApres = (startingDate, month, day) => {
-  if (!startingDate?.isValid()) {
+  if (!isValid(startingDate)) {
     throw new Error("La date de départ doit être valide");
   }
   if (month < 1 || month > 12) {
@@ -68,15 +77,10 @@ const trouveDateApres = (startingDate, month, day) => {
   if (day < 1 || day > 31) {
     throw new Error("Le jour doit être compris entre 1 et 31");
   }
-
-  return moment([
-    startingDate.year() +
-      (moment([startingDate.year(), month - 1, day]).isSameOrBefore(
-        startingDate
-      ) && 1),
-    month - 1,
-    day,
-  ]);
+  const year = getYear(startingDate);
+  const candidate = new Date(year, month - 1, day);
+  const resultYear = isBefore(candidate, startingDate) || isSameDay(candidate, startingDate) ? year + 1 : year;
+  return new Date(resultYear, month - 1, day);
 };
 
 export const precedent30avril = (date) => trouveDateAvant(date, 4, 30);
@@ -85,13 +89,13 @@ export const prochain30avril = (date) => trouveDateApres(date, 4, 30);
 
 /**
  * Calcule le nième jour d'un mois spécifique.
- * @param {moment.Moment} dt - Date de référence
+ * @param {Date} dt - Date de référence
  * @param {number} day - Jour de la semaine (0-6, où 0 est dimanche)
  * @param {number} number - Numéro d'occurrence du jour dans le mois
- * @returns {moment.Moment} La date trouvée ou un moment invalide si hors du mois
+ * @returns {Date} La date trouvée ou null si hors du mois
  */
 export function nthDay(dt, day, number) {
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date de référence doit être valide");
   }
   if (day < 0 || day > 6) {
@@ -101,12 +105,14 @@ export function nthDay(dt, day, number) {
     throw new Error("Le numéro d'occurrence doit être supérieur à 0");
   }
 
-  const firstDay = dt.clone().date(1).day(day);
-  if (firstDay.isBefore(dt.startOf("month"))) {
-    firstDay.add(7, "days");
+  const firstDay = set(startOfMonth(dt), { hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
+  let d = firstDay;
+  while (getDay(d) !== day) {
+    d = addDays(d, 1);
   }
-  const result = firstDay.clone().add((number - 1) * 7, "days");
-  return result.isAfter(dt.endOf("month")) ? moment.invalid() : result;
+  d = addDays(d, (number - 1) * 7);
+  if (getMonth(d) !== getMonth(dt)) return null;
+  return d;
 }
 
 /**
@@ -115,7 +121,8 @@ export function nthDay(dt, day, number) {
  * @returns Une valeur booléenne.
  */
 export function estDernierJourMois(dt) {
-  return dt.isValid() && dt.clone().add(1, "days").month() !== dt.month();
+  if (!isValid(dt)) return false;
+  return getDate(dt) === getDate(lastDayOfMonth(dt));
 }
 
 /**
@@ -123,22 +130,24 @@ export function estDernierJourMois(dt) {
  * Les vacances de la Toussaint commencent 15 jours avant le 1er novembre
  * et se terminent le dimanche suivant le 1er novembre.
  * 
- * @param {moment.Moment} dt - La date à vérifier
+ * @param {Date} dt - La date à vérifier
  * @returns {boolean} true si la date est pendant les vacances de la Toussaint
  */
 function estToussaint(dt) {
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date doit être valide");
   }
 
-  const firstNov = moment([dt.year(), 10, 1]);
-  const finVacances = firstNov.day() === 0 ? firstNov : firstNov.day(7);
-  const debutVacances = finVacances.clone().add(-15, "days");
+  const year = getYear(dt);
+  const firstNov = new Date(year, 10, 1);
+  let finVacances = firstNov;
+  if (getDay(firstNov) !== 0) {
+    // Aller au dimanche suivant
+    finVacances = addDays(firstNov, 7 - getDay(firstNov));
+  }
+  const debutVacances = subDays(finVacances, 15);
   
-  return (
-    debutVacances.diff(dt, "days") <= 0 && 
-    finVacances.diff(dt, "days") >= 0
-  );
+  return !isBefore(dt, debutVacances) && !isAfter(dt, finVacances);
 }
 
 /**
@@ -147,15 +156,26 @@ function estToussaint(dt) {
  * sauf si Noël est un dimanche, auquel cas elles commencent le samedi 8 jours avant.
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
- * @returns {moment.Moment} La date de début des vacances
+ * @returns {Date} La date de début des vacances
  */
 function debutVacancesNoel(annee) {
   if (!Number.isInteger(annee)) {
     throw new Error("L'année doit être un nombre entier");
   }
 
-  const Noel = moment([annee, 11, 25]);
-  return Noel.clone().day(6 - (Noel.day() === 0 ? 2 : 1) * 7);
+  const year = getYear(new Date(annee, 11, 25));
+  const Noel = new Date(year, 11, 25);
+  // Si Noël est un dimanche, samedi 8 jours avant, sinon samedi avant Noël
+  if (getDay(Noel) === 0) {
+    return subDays(Noel, 8);
+  } else {
+    // Trouver le samedi avant Noël
+    let d = Noel;
+    while (getDay(d) !== 6) {
+      d = subDays(d, 1);
+    }
+    return d;
+  }
 }
 
 /**
@@ -163,35 +183,36 @@ function debutVacancesNoel(annee) {
  * Les vacances durent 15 jours, plus 1 jour si Noël est un dimanche.
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
- * @returns {moment.Moment} La date de fin des vacances
+ * @returns {Date} La date de fin des vacances
  */
 function finVacancesNoel(annee) {
   if (!Number.isInteger(annee)) {
     throw new Error("L'année doit être un nombre entier");
   }
 
-  const Noel = moment([annee, 11, 25]);
-  return debutVacancesNoel(annee).add(15 + (Noel.day() === 0 && 1), "days");
+  const debut = debutVacancesNoel(annee);
+  const Noel = new Date(getYear(debut), 11, 25);
+  let jours = 15;
+  if (getDay(Noel) === 0) jours += 1;
+  return addDays(debut, jours);
 }
 
 /**
  * Vérifie si une date correspond à la période des vacances de Noël.
  * 
- * @param {moment.Moment} dt - La date à vérifier
+ * @param {Date} dt - La date à vérifier
  * @returns {boolean} true si la date est pendant les vacances de Noël
  */
 function estNoel(dt) {
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date doit être valide");
   }
 
-  const debutVacances = debutVacancesNoel(dt.year());
-  const finVacances = finVacancesNoel(dt.year() - 1);
+  const year = getYear(dt);
+  const debutVacances = debutVacancesNoel(year);
+  const finVacances = finVacancesNoel(year);
   
-  return (
-    debutVacances.diff(dt, "days") <= 0 || 
-    finVacances.diff(dt, "days") >= 0
-  );
+  return !isBefore(dt, debutVacances) && !isAfter(dt, finVacances);
 }
 
 /**
@@ -201,7 +222,7 @@ function estNoel(dt) {
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
  * @param {string} zone - La zone scolaire ('A', 'B' ou 'C')
- * @returns {moment.Moment} La date de début des vacances
+ * @returns {Date} La date de début des vacances
  */
 function debutVacancesFevrier(annee, zone) {
   if (!Number.isInteger(annee)) {
@@ -220,7 +241,10 @@ function debutVacancesFevrier(annee, zone) {
     'C': ((((anneeCalcul - 2018) % 3) + 1) % 3) + 1
   }[zone];
 
-  return finVacancesNoel(annee - 1).day((4 + Numero) * 7 - 1);
+  const finNoel = finVacancesNoel(annee - 1);
+  // Le jour (4 + Numero) * 7 - 1 (soit jeudi, vendredi, samedi)
+  let d = addDays(finNoel, (4 + Numero) * 7 - 1);
+  return d;
 }
 
 /**
@@ -229,7 +253,7 @@ function debutVacancesFevrier(annee, zone) {
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
  * @param {string} zone - La zone scolaire ('A', 'B' ou 'C')
- * @returns {moment.Moment} La date de fin des vacances
+ * @returns {Date} La date de fin des vacances
  */
 function finVacancesFevrier(annee, zone) {
   if (!Number.isInteger(annee)) {
@@ -239,31 +263,29 @@ function finVacancesFevrier(annee, zone) {
     throw new Error(`Zone scolaire non reconnue: ${zone}. Utilisez 'A', 'B' ou 'C'.`);
   }
 
-  return debutVacancesFevrier(annee, zone).add(15, "days");
+  return addDays(debutVacancesFevrier(annee, zone), 15);
 }
 
 /**
  * Vérifie si une date correspond à la période des vacances de février.
  * 
- * @param {moment.Moment} dt - La date à vérifier
+ * @param {Date} dt - La date à vérifier
  * @param {string} zone - La zone scolaire ('A', 'B' ou 'C')
  * @returns {boolean} true si la date est pendant les vacances de février
  */
 function estFevrier(dt, zone) {
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date doit être valide");
   }
   if (!['A', 'B', 'C'].includes(zone)) {
     throw new Error(`Zone scolaire non reconnue: ${zone}. Utilisez 'A', 'B' ou 'C'.`);
   }
 
-  const debutVacances = debutVacancesFevrier(dt.year(), zone);
-  const finVacances = finVacancesFevrier(dt.year(), zone);
+  const year = getYear(dt);
+  const debutVacances = debutVacancesFevrier(year, zone);
+  const finVacances = finVacancesFevrier(year, zone);
   
-  return (
-    debutVacances.diff(dt, "days") <= 0 && 
-    finVacances.diff(dt, "days") >= 0
-  );
+  return !isBefore(dt, debutVacances) && !isAfter(dt, finVacances);
 }
 
 /**
@@ -273,7 +295,7 @@ function estFevrier(dt, zone) {
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
  * @param {string} zone - La zone scolaire ('A', 'B' ou 'C')
- * @returns {moment.Moment} La date de début des vacances
+ * @returns {Date} La date de début des vacances
  */
 function debutVacancesPaques(annee, zone) {
   if (!Number.isInteger(annee)) {
@@ -283,10 +305,9 @@ function debutVacancesPaques(annee, zone) {
     throw new Error(`Zone scolaire non reconnue: ${zone}. Utilisez 'A', 'B' ou 'C'.`);
   }
 
-  return debutVacancesFevrier(annee, zone).add(
-    7 * 8 + ((annee === 2022 || annee === 2023) ? 7 : 0),
-    "days"
-  );
+  let weeks = 8;
+  if (annee === 2022 || annee === 2023) weeks = 9;
+  return addDays(debutVacancesFevrier(annee, zone), weeks * 7);
 }
 
 /**
@@ -295,7 +316,7 @@ function debutVacancesPaques(annee, zone) {
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
  * @param {string} zone - La zone scolaire ('A', 'B' ou 'C')
- * @returns {moment.Moment} La date de fin des vacances
+ * @returns {Date} La date de fin des vacances
  */
 function finVacancesPaques(annee, zone) {
   if (!Number.isInteger(annee)) {
@@ -305,52 +326,48 @@ function finVacancesPaques(annee, zone) {
     throw new Error(`Zone scolaire non reconnue: ${zone}. Utilisez 'A', 'B' ou 'C'.`);
   }
 
-  return debutVacancesPaques(annee, zone).add(15, "days");
+  return addDays(debutVacancesPaques(annee, zone), 15);
 }
 
 /**
  * Vérifie si une date correspond à la période des vacances de Pâques.
  * 
- * @param {moment.Moment} dt - La date à vérifier
+ * @param {Date} dt - La date à vérifier
  * @param {string} zone - La zone scolaire ('A', 'B' ou 'C')
  * @returns {boolean} true si la date est pendant les vacances de Pâques
  */
 function estPaques(dt, zone) {
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date doit être valide");
   }
   if (!['A', 'B', 'C'].includes(zone)) {
     throw new Error(`Zone scolaire non reconnue: ${zone}. Utilisez 'A', 'B' ou 'C'.`);
   }
 
-  const debutVacances = debutVacancesPaques(dt.year(), zone);
-  const finVacances = finVacancesPaques(dt.year(), zone);
+  const year = getYear(dt);
+  const debutVacances = debutVacancesPaques(year, zone);
+  const finVacances = finVacancesPaques(year, zone);
   
-  return (
-    debutVacances.diff(dt, "days") <= 0 && 
-    finVacances.diff(dt, "days") >= 0
-  );
+  return !isBefore(dt, debutVacances) && !isAfter(dt, finVacances);
 }
 
 /**
  * Vérifie si une date correspond à la période des vacances de l'Ascension.
  * Les vacances durent du jeudi de l'Ascension au dimanche suivant.
  * 
- * @param {moment.Moment} dt - La date à vérifier
+ * @param {Date} dt - La date à vérifier
  * @returns {boolean} true si la date est pendant les vacances de l'Ascension
  */
 function estAscencion(dt) {
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date doit être valide");
   }
 
-  const debutVacances = Ascension(dt.year());
-  const finVacances = Ascension(dt.year()).day(7);
+  const year = getYear(dt);
+  const debutVacances = Ascension(year);
+  const finVacances = addDays(debutVacances, 7);
   
-  return (
-    debutVacances.diff(dt, "days") <= 0 && 
-    finVacances.diff(dt, "days") >= 0
-  );
+  return !isBefore(dt, debutVacances) && !isAfter(dt, finVacances);
 }
 
 /**
@@ -359,22 +376,22 @@ function estAscencion(dt) {
  * qui est un samedi, un vendredi ou un mercredi.
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
- * @returns {moment.Moment} La date de début des vacances
+ * @returns {Date} La date de début des vacances
  */
 function debutVacancesEte(annee) {
   if (!Number.isInteger(annee)) {
     throw new Error("L'année doit être un nombre entier");
   }
 
-  const debutVacances = moment([annee, 6, 8]);
+  let d = new Date(annee, 6, 8);
   const joursPossibles = [3, 5, 6]; // mercredi, vendredi, samedi
   
-  while (debutVacances.month() === 6) {
-    if (joursPossibles.includes(debutVacances.day())) break;
-    debutVacances.add(-1, "days");
+  while (getMonth(d) === 6) {
+    if (joursPossibles.includes(getDay(d))) break;
+    d = subDays(d, 1);
   }
   
-  return debutVacances;
+  return d;
 }
 
 /**
@@ -382,56 +399,53 @@ function debutVacancesEte(annee) {
  * La rentrée est le premier lundi, mardi ou jeudi de septembre.
  * 
  * @param {number} annee - L'année pour laquelle calculer les vacances
- * @returns {moment.Moment} La date de fin des vacances
+ * @returns {Date} La date de fin des vacances
  */
 function finVacancesEte(annee) {
   if (!Number.isInteger(annee)) {
     throw new Error("L'année doit être un nombre entier");
   }
 
-  const finVacances = moment([annee, 8, 1]);
+  let d = new Date(annee, 8, 1);
   const joursPossibles = [1, 2, 4]; // lundi, mardi, jeudi
   
-  while (finVacances.month() === 8) {
-    if (joursPossibles.includes(finVacances.day())) break;
-    finVacances.add(1, "days");
+  while (getMonth(d) === 8) {
+    if (joursPossibles.includes(getDay(d))) break;
+    d = addDays(d, 1);
   }
   
-  return finVacances.add(-1, "days");
+  return subDays(d, 1);
 }
 
 /**
  * Vérifie si une date correspond à la période des vacances d'été.
  * 
- * @param {moment.Moment} dt - La date à vérifier
+ * @param {Date} dt - La date à vérifier
  * @returns {boolean} true si la date est pendant les vacances d'été
  */
 function estEte(dt) {
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date doit être valide");
   }
 
-  const debutVacances = debutVacancesEte(dt.year());
-  const finVacances = finVacancesEte(dt.year());
+  const year = getYear(dt);
+  const debutVacances = debutVacancesEte(year);
+  const finVacances = finVacancesEte(year);
   
-  return (
-    debutVacances.diff(dt, "days") <= 0 && 
-    finVacances.diff(dt, "days") >= 0
-  );
+  return !isBefore(dt, debutVacances) && !isAfter(dt, finVacances);
 }
 
 /**
  * Vérifie si une date donnée correspond à une période de vacances scolaires.
  * La fonction est mémoïsée pour améliorer les performances.
  * 
- * @param {moment.Moment} dt - La date à vérifier
+ * @param {Date} dt - La date à vérifier
  * @param {string} zone - La zone scolaire ('A', 'B' ou 'C')
  * @returns {boolean} true si la date est en période de vacances, false sinon
  * @throws {Error} Si la date n'est pas valide ou si la zone n'est pas reconnue
  */
 export const estVacances = memoize((dt, zone) => {
-  // Validation des entrées
-  if (!dt?.isValid()) {
+  if (!isValid(dt)) {
     throw new Error("La date doit être valide");
   }
 
@@ -439,7 +453,6 @@ export const estVacances = memoize((dt, zone) => {
     throw new Error(`Zone scolaire non reconnue: ${zone}. Utilisez 'A', 'B' ou 'C'.`);
   }
 
-  // Vérification des différentes périodes de vacances
   return (
     estToussaint(dt) ||
     estNoel(dt) ||
