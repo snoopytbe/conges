@@ -15,25 +15,23 @@ const AuthButton: React.FC<AuthButtonProps> = ({ onSignIn }) => (
     sx={{
       display: 'flex',
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'center',
       minHeight: '100vh',
       backgroundColor: '#f5f5f5',
       padding: '20px',
+      paddingTop: '150px',
     }}
   >
     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-      <img 
-        src="/Capture-2025-05-01-103443.png" 
-        alt="Logo" 
-        style={{ 
-          width: 120, 
-          height: 144, 
-          marginRight: 36, 
-          borderRadius: 16, 
-          objectFit: 'cover' as const, 
-          boxShadow: '0 2px 8px rgba(60,60,60,0.08)' 
-        }} 
+      <img
+        src="/zendays_logo.png"
+        alt="Logo"
+        style={{
+          width: 200,
+          height: 200,
+          marginRight: 36,
+        }}
       />
     </Box>
     <Paper
@@ -46,7 +44,6 @@ const AuthButton: React.FC<AuthButtonProps> = ({ onSignIn }) => (
         maxWidth: '400px',
         width: '100%',
         backgroundColor: 'white',
-        borderRadius: '12px',
       }}
     >
       <Typography
@@ -60,7 +57,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({ onSignIn }) => (
           letterSpacing: 1
         }}
       >
-        Mon calendrier
+        Connexion
       </Typography>
       <Button
         fullWidth

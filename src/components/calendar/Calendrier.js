@@ -10,14 +10,13 @@ import { MENU_OPTIONS, SUB_MENU_OPTIONS, CALENDAR_CONFIG } from "../../config/ca
 import DateRangeDialog from "../dialogs/DateRangeDialog";
 import { MyMenu } from "../layout";
 import CalendarContent from "./CalendarContent";
-import Legend from "./Legend";
-import LoadingIndicator from "./LoadingIndicator";
+import LoadingIndicator from "../LoadingIndicator/LoadingIndicator";
 import {
   addMonths,
   setDate
 } from "date-fns";
 
-export default function Calendrier() {
+export default function Calendrier({user}) {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -49,7 +48,7 @@ export default function Calendrier() {
     handleClick: handleCongesClick,
     handleContextMenu,
     handleModifyConges
-  } = useConges(dateDebut, nbMonths, setSnackbar);
+  } = useConges(dateDebut, nbMonths, setSnackbar, user);
 
   const onMenuItemClick = (event, abr, duree) => {
     event.preventDefault();
@@ -86,7 +85,6 @@ export default function Calendrier() {
             highlighted={highlighted}
             setDateRangeDialogVisible={setDateRangeDialogVisible}
           />
-          <Legend />
         </>
       )}
       <MyMenu

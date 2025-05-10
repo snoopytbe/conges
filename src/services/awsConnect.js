@@ -1,36 +1,5 @@
-import { Hub } from "aws-amplify/utils";
 import { getCurrentUser, fetchUserAttributes } from "aws-amplify/auth";
-
-/*
-const isLocalhost = Boolean(
-  window.location.hostname === "localhost" ||
-    // [::1] is the IPv6 localhost address.
-    window.location.hostname === "[::1]" ||
-    // 127.0.0.1/8 is considered localhost for IPv4.
-    window.location.hostname.match(
-      /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-    )
-);
-
-// Assuming you have two redirect URIs, and the first is for localhost and second is for production
-const [localRedirectSignIn, productionRedirectSignIn] =
-  awsmobile.oauth.redirectSignIn.split(",");
-
-const [localRedirectSignOut, productionRedirectSignOut] =
-  awsmobile.oauth.redirectSignOut.split(",");
-
-export const updatedawsmobile = {
-  ...awsmobile,
-  oauth: {
-    ...awsmobile.oauth,
-    redirectSignIn: isLocalhost
-      ? localRedirectSignIn
-      : productionRedirectSignIn,
-    redirectSignOut: isLocalhost
-      ? localRedirectSignOut
-      : productionRedirectSignOut,
-  },
-};*/
+import { useState } from 'react';
 
 function getUser() {
   return getCurrentUser()
@@ -56,24 +25,72 @@ function getUser() {
 }
 
 export function awsConnect(setUser) {
-  Hub.listen("auth", ({ payload: { event, data } }) => {
-    switch (event) {
-      case "signInWithRedirect":
-      case "signIn":
-      case "cognitoHostedUI":
-        getUser().then((userData) => setUser(userData));
-        break;
-      case "signOut":
-        setUser(null);
-        break;
-      case "signIn_failure":
-      case "signInWithRedirect_failure":
-      case "cognitoHostedUI_failure":
-        console.log("Sign in failure", data);
-        break;
-      default:
-    }
-  });
+  // TODO: Implement sign in and sign out
 
   getUser().then((userData) => setUser(userData));
 }
+
+export const ERROR_TYPES = {
+  CONNECTION: 'CONNECTION',
+  AUTHENTICATION: 'AUTHENTICATION',
+  UNKNOWN: 'UNKNOWN'
+};
+
+export const useAuth = () => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const connectUser = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await awsConnect(setUser);
+    } catch (err) {
+      let errorType = ERROR_TYPES.UNKNOWN;
+      let errorMessage = "Une erreur est survenue lors de la connexion";
+
+      if (err.name === 'NetworkError') {
+        errorType = ERROR_TYPES.CONNECTION;
+        errorMessage = "Erreur de connexion au serveur. Veuillez vérifier votre connexion internet.";
+      } else if (err.name === 'AuthError') {
+        errorType = ERROR_TYPES.AUTHENTICATION;
+        errorMessage = "Erreur d'authentification. Veuillez réessayer de vous connecter.";
+      }
+
+      setError({
+        type: errorType,
+        message: errorMessage,
+        originalError: err
+      });
+      console.error("Erreur de connexion:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signOutUser = async () => {
+    try {
+      // TODO: Implement sign out
+    } catch (err) {
+      setError({
+        type: ERROR_TYPES.AUTHENTICATION,
+        message: "Erreur lors de la déconnexion. Veuillez réessayer.",
+        originalError: err
+      });
+      console.error("Erreur de déconnexion:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+
+  return {
+    user,
+    isLoading,
+    error,
+    connectUser,
+    signOutUser
+  };
+}; 

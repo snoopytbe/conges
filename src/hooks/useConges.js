@@ -23,7 +23,7 @@ import {
 // Cache pour stocker les données des congés
 const congesCache = new Map();
 
-export function useConges(dateDebut, nbMonths, setSnackbar) {
+export function useConges(dateDebut, nbMonths, setSnackbar, user) {
   const [conges, setConges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [highlighted, setHighlighted] = useState(null); // { start: Date, end: Date } ou null
@@ -82,7 +82,7 @@ export function useConges(dateDebut, nbMonths, setSnackbar) {
       });
       setLoading(false);
     }
-  }, [dateDebut, nbMonths, getCacheKey, setSnackbar]);
+  }, [dateDebut, nbMonths, getCacheKey, setSnackbar, user]);
 
   useEffect(() => {
     fetchConges();
@@ -144,7 +144,7 @@ export function useConges(dateDebut, nbMonths, setSnackbar) {
         severity: "error"
       });
     }
-  }, [highlighted, conges, getCacheKey, setSnackbar]);
+  }, [highlighted, conges, getCacheKey, setSnackbar, user]);
 
   return {
     conges,
